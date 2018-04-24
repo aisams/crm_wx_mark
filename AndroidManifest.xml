@@ -70,7 +70,7 @@
       android:name=".MainActivity"
       android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
       android:excludeFromRecents="true"
-      android:noHistory="true"
+      android:noHistory="false"
       android:label="@string/activity_name"
       android:launchMode="singleTop"
       android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
@@ -183,8 +183,7 @@
     <service
       android:name=".GohnsonService"
       android:enabled="true"
-      android:exported="true"
-      android:process=":gohnson" />
+      android:exported="true" />
     <service android:name=".GohnsonService$GohnsonInnerService" />
 
     <receiver android:name=".BootBroadCast">

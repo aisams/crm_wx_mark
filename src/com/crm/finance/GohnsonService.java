@@ -123,6 +123,8 @@ public class GohnsonService extends Service {
 
     }
 
+
+
     public void pushHearBeat() {
         if (wxIMEI == null || wxIMEI.equals("") || wxIMEI1 == null || wxIMEI1.equals("")) {
             initIMEI();
@@ -284,7 +286,7 @@ public class GohnsonService extends Service {
                 }
             }
         } catch (Exception e) {
-            MyLog.inputLogToFile(TAG, "异常 getUin errMsg = " + e.getMessage() + ",path = " + filePath);
+            MyLog.inputLogToFile(TAG, "获取Uin异常 getUin errMsg = " + e.getMessage() + ",path = " + filePath);
         }
     }
 
@@ -587,7 +589,6 @@ public class GohnsonService extends Service {
             mTimer.cancel();
         }
         GlobalCofig.excuteGohnsonService(this);
-        GlobalCofig.excuteGuardService(this);
         LogInputUtil.e(TAG, "onDestroy GohnsonService");
     }
 

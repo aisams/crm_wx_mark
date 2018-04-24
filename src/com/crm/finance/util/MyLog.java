@@ -388,6 +388,7 @@ public class MyLog {
 		if (!debug_level) {
 			synchronized (MyLog.syncLock) {
 				try {
+					if(fullPath == null || fullPath.equals(""))return;
 					File file = new File(fullPath);
 					FileOutputStream fos = new FileOutputStream(file, true);
 					info = dformat.format(Calendar.getInstance()

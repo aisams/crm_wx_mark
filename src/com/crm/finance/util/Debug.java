@@ -21,13 +21,7 @@ public class Debug {
 
 		public void uncaughtException(Thread t, Throwable e) {
 			String info = genStackTrace(e);
-			MyLog.e(t, info);
-            LogInputUtil.e(TAG,"未捕获异常:"+info);
-            MyLog.e(TAG,"未捕获异常:"+info);
-         //   MobclickAgent.reportError(App.getApp(),"err:"+info );
-        /*    android.os.Process.killProcess(android.os.Process.myPid());
-            System.exit(10);*/
-			// defaultUEH.uncaughtException(t, e);
+            MyLog.inputLogToFile(TAG,"未捕获异常:"+info);
 		}
 	}
 

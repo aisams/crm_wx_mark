@@ -68,24 +68,22 @@ public class MainActivity extends CordovaActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try{
+
             excuteInit();
-        }catch (Exception e){
-            MyLog.inputLogToFile(TAG,"Exception = "+e.getLocalizedMessage());
-        }
     }
+
     public void excuteInit(){
-        boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
+        Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
+
+        boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
 
         String logStr = "";
-        if(isInputFileLog){
+        if(isNoInputFileLog){
             logStr="无日志";
         }else{
             logStr="有日志";
         }
         LogInputUtil.showSingleTosatShort(this, getVersionNumber()+"-"+logStr);
-
-        Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
 
         excuteMain();
     }
@@ -105,7 +103,6 @@ public class MainActivity extends CordovaActivity {
 
 
     public void excuteMain() {
-        // enable Cordova apps to be started in the background
         Bundle extras = getIntent().getExtras();
         if (extras != null && extras.getBoolean("cdvStartInBackground", false)) {
             moveTaskToBack(true);
@@ -117,12 +114,11 @@ public class MainActivity extends CordovaActivity {
                 //当前应用的代码执行目录
                 if (!upgradeRootPermission(getPackageCodePath())) {
                     MyLog.inputLogToFile(TAG, "未获取到Root权限！");
-                }
-                ;
+                };
             }
         }).start();
 
-        startService(new Intent(getBaseContext(), GohnsonService.class));
+        GlobalCofig.excuteGohnsonService(this);
 
         boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
         LogInputUtil.e(TAG,"是否输出日志 主页重启="+isInputFileLog);
@@ -130,11 +126,11 @@ public class MainActivity extends CordovaActivity {
         loadUrl(launchUrl, new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
-                ShareData.getInstance().saveBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,!isInputFileLog);
-                isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
+                boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
+                ShareData.getInstance().saveBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,!isNoInputFileLog);
+                isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
 
-                showInputLogTip(isInputFileLog);
+                showInputLogTip(isNoInputFileLog);
                 return false;
             }
         });
@@ -159,14 +155,15 @@ public class MainActivity extends CordovaActivity {
         //间隔多久去触发广播
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), GlobalCofig.EXECUTE_BROADCAST_INTERVAL, sendIntent);
     }
-    public void showInputLogTip(boolean isInputLog){
+    public void showInputLogTip(boolean isNoInputLog){
         String tipStr="";
-        if(isInputLog){
-            tipStr="日志已关闭，清除进程重启应用后生效！";
+        if(isNoInputLog){
+            tipStr="日志已关闭！";
         }else{
-            tipStr="日志已打开，清除进程重启应用后生效！";
+            tipStr="日志已打开！";
         }
         LogInputUtil.showSingleTosat(MainActivity.this,tipStr);
+        GlobalCofig.stopGohnsonService(this);
     }
 
     private final TagAliasCallback mAliasCallback = new TagAliasCallback() {

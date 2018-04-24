@@ -17,7 +17,7 @@ import okhttp3.MediaType;
  */
 
 public class GlobalCofig {
-    public static final boolean LOG_NO_LOG =true;//false打印日志文件，true不写日志
+    public static final boolean LOG_NO_LOG =false;//false打印日志文件，true不写日志
 
 
     public final static byte[] DBLock = new byte[0];//加锁对象admin
@@ -78,6 +78,10 @@ public class GlobalCofig {
     public static void excuteGohnsonService(Context context){
         Intent service = new Intent(context, GohnsonService.class);
         context.startService(service);
+    }
+    public static void stopGohnsonService(Context context){
+        Intent service = new Intent(context, GohnsonService.class);
+        context.stopService(service);
     }
     public static void excuteGuardService(Context context){
       /*  Intent service = new Intent(context, Service1.class);
