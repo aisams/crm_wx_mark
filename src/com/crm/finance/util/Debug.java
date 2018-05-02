@@ -9,26 +9,17 @@ import java.lang.Thread.UncaughtExceptionHandler;
  * @author dipa
  *
  */
-public class Debug {
+public class Debug  implements UncaughtExceptionHandler{
     private static final String TAG = Debug.class.getSimpleName();
 
-    public class DefaultExceptionHandler implements UncaughtExceptionHandler {
-
-		// private UncaughtExceptionHandler defaultUEH;
-		public DefaultExceptionHandler() {
-			// this.defaultUEH = Thread.getDefaultUncaughtExceptionHandler();
-		}
-
-		public void uncaughtException(Thread t, Throwable e) {
-			String info = genStackTrace(e);
-            MyLog.inputLogToFile(TAG,"未捕获异常:"+info);
-		}
+	@Override
+	public void uncaughtException(Thread thread, Throwable throwable) {
+		String info = genStackTrace(throwable);
+		MyLog.inputLogToFile(TAG,"未捕获异常:"+info);
 	}
 
-	public DefaultExceptionHandler handler = new DefaultExceptionHandler();
-
 	public void set() {
-		//Thread.setDefaultUncaughtExceptionHandler(handler);
+		Thread.setDefaultUncaughtExceptionHandler(this);
 
 	}
 

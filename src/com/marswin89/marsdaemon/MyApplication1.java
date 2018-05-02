@@ -23,6 +23,7 @@ public class MyApplication1 extends DaemonApplication {
     }
     public void init(){
         Debug.threadInit();
+        MyLog.init(MyApplication1.getApp().getCacheDir().getPath());
     }
     public static MyApplication1 getApp() {
         return app;

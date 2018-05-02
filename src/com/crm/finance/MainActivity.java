@@ -29,6 +29,7 @@ import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.MyLog;
 import com.crm.finance.util.OkHttpUtil;
 import com.crm.finance.util.ShareData;
+import com.crm.finance.util.Utils;
 import com.marswin89.marsdaemon.Service1;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
@@ -68,14 +69,13 @@ public class MainActivity extends CordovaActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
             excuteInit();
     }
 
     public void excuteInit(){
         Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
 
-        boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
+        boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
 
         String logStr = "";
         if(isNoInputFileLog){
@@ -83,23 +83,12 @@ public class MainActivity extends CordovaActivity {
         }else{
             logStr="有日志";
         }
-        LogInputUtil.showSingleTosatShort(this, getVersionNumber()+"-"+logStr);
+        LogInputUtil.showSingleTosatShort(this, Utils.getVersionNumber(this)+"_"+logStr+"版本");
 
         excuteMain();
     }
 
-    public String getVersionNumber() {
-        String version = "";
-        PackageManager packageManager = getPackageManager();
-        PackageInfo packInfo = null;
-        try {
-            packInfo = packageManager.getPackageInfo(getPackageName(), 0);
-            version = packInfo.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return version;
-    }
+
 
 
     public void excuteMain() {
@@ -120,15 +109,15 @@ public class MainActivity extends CordovaActivity {
 
         GlobalCofig.excuteGohnsonService(this);
 
-        boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
+        boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
         LogInputUtil.e(TAG,"是否输出日志 主页重启="+isInputFileLog);
 
         loadUrl(launchUrl, new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
-                boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
+                boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
                 ShareData.getInstance().saveBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,!isNoInputFileLog);
-                isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
+                isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
 
                 showInputLogTip(isNoInputFileLog);
                 return false;

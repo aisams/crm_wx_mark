@@ -80,12 +80,12 @@ public class OkHttpUtil {
             @Override
             public void onFailure(Call call, IOException e) {
                 String failureStr = "访问失败，msg = "+e.getMessage();
-                MyLog.inputLogToFile(TAG,failureStr,GlobalCofig.isWriteHearbeat);
+                MyLog.inputLogToFile(TAG,failureStr,true);
             }
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String responseStr = "访问成功，body = "+response.body().string();
-                MyLog.inputLogToFile(TAG,responseStr,GlobalCofig.isWriteHearbeat);
+                MyLog.inputLogToFile(TAG,responseStr,true);
             }
         });
     }

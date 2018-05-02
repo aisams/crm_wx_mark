@@ -108,7 +108,7 @@ public class MyLog {
 			if (!flag) {
 				LogInputUtil.e("error", "mkdir error");
 			}
-			boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,true);
+			boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
 			LogInputUtil.e(TAG,"是否输出日志 服务重启="+isInputFileLog);
 			debug_level = isInputFileLog;
 			if (!debug_level) {

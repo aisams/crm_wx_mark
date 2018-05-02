@@ -51,7 +51,6 @@ public class GlobalCofig {
     public static final String REDIS_KEY_IMGFLAG ="wx_imgflag_table_datas";
     public static final String REDIS_KEY_USERINFO ="wx_userinfo_table_datas";
 
-    public static final String IS_INPUFT_LOG ="IS_INPUFT_LOG";
 
 
     public static final String MESSAGE_LAST_UPLOAD_TIME ="message_last_upload_time_";//消息表当前取到哪个时间点,拼接文件名以区分不同用户数据库
