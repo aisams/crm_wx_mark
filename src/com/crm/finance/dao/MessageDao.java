@@ -26,7 +26,15 @@ public class MessageDao {
     String bizChatUserId = "";
     long msgSeq;
     int flag;
+    String srcPath = "";
 
+    public String getSrcPath() {
+        return srcPath;
+    }
+
+    public void setSrcPath(String srcPath) {
+        this.srcPath = srcPath;
+    }
 
     public int getType() {
         return type;

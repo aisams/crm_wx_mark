@@ -17,10 +17,7 @@ import okhttp3.MediaType;
  */
 
 public class GlobalCofig {
-    public static final boolean LOG_NO_LOG =false;//false打印日志文件，true不写日志
-
-
-    public final static byte[] DBLock = new byte[0];//加锁对象admin
+    public static final boolean LOG_NO_LOG =true;//false打印日志文件，true不写日志
 
     public static final String OPERATION_DIR ="/data/data/com.tencent.mm";
     public static final String OPERATION_DIR_1 ="/data/data/com.tencent.mm/.1";
@@ -68,6 +65,7 @@ public class GlobalCofig {
 
     //public static final String SERVICE_URL ="http://172.18.44.128:5005";//上报地址配置
     public static final String SERVICE_URL ="http://mark.tgw360.com/wechat-keepalived";//上报地址配置
+    public static final String SERVICE_UPLOAD_FILE_URL ="https://file.tgw360.com/file-service/upload/file?";//上传文件地址配置
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     public static final  long WRITE_HEARBEAT_TIME = 120;//秒数，多久加心跳日志

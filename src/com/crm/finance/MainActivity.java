@@ -24,12 +24,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.crm.finance.dao.UploadFileDao;
 import com.crm.finance.util.GlobalCofig;
 import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.MyLog;
 import com.crm.finance.util.OkHttpUtil;
 import com.crm.finance.util.ShareData;
+import com.crm.finance.util.UploadManager;
 import com.crm.finance.util.Utils;
+import com.crm.finance.util.callback.BaseCallback;
+import com.crm.finance.util.fileutil.FileUtil;
+import com.crm.finance.util.wxutil.WXFileUtil;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.marswin89.marsdaemon.Service1;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
@@ -40,6 +47,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
