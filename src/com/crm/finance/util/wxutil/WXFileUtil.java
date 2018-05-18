@@ -108,11 +108,6 @@ public class WXFileUtil {
             if (type == 3) {//类型3为图片，34为语音，1为文本
                 String imgPath = WXFileUtil.getChatImgPath(wxFolderPath, imagePath);
                 uploadWXImage(dao, imgPath,i);
-
-               /* String localPath = WXFileUtil.getScrParetDir() + imgPath;
-                if(!WXFileUtil.isHaveImgFuffix(localPath)){
-                    deleteFile(localPath+".jpg");//上传后，因为jpg为复制后的图片，故删除
-                }*/
             } else if (type == 34) {
                 String voicePath = WXFileUtil.getChatVoicePath(wxFolderPath, imagePath);
                 uploadWXVoice(dao, voicePath);
@@ -139,17 +134,9 @@ public class WXFileUtil {
             servicePath = servicePath + imageFuffix;
         }
 
-        String localJPGPath = localPath;
-      /*  if(!isHaveImgFuffix(localJPGPath)){//若本地路径无后缀，加上后缀再上传，文件服务器不支持无后缀文件上传
-            localJPGPath = localJPGPath + imageFuffix;
-        }*/
         boolean localFileIsExists = FileUtil.isFileExists(localPath);
         LogInputUtil.e(TAG,"源图片地址 = "+localPath +", 地址是否存在 = "+localFileIsExists+",待上传服务器地址 ="+servicePath);
         if (localFileIsExists) {
-//            if(!localPath.endsWith(localJPGPath)){
-//                FileUtil.copyFile(localPath, localJPGPath);
-//            }
-           // if (!FileUtil.isFileExists(localJPGPath)) return;
                 UploadManager.getInit().uploadFile(localPath, servicePath, new BaseCallback() {
                     @Override
                     public void Succeed(Object obj) {
