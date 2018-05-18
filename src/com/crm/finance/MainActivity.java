@@ -77,12 +77,16 @@ public class MainActivity extends CordovaActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-            excuteInit();
+          excuteInit();
     }
 
     public void excuteInit(){
         Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
+        showLogTip();
+        excuteMain();
+    }
 
+    public void showLogTip(){
         boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
 
         String logStr = "";
@@ -92,10 +96,7 @@ public class MainActivity extends CordovaActivity {
             logStr="有日志";
         }
         LogInputUtil.showSingleTosatShort(this, Utils.getVersionNumber(this)+"_"+logStr+"版本");
-
-        excuteMain();
     }
-
 
 
 

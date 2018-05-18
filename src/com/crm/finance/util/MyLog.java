@@ -115,10 +115,8 @@ public class MyLog {
 				long runtime = Calendar.getInstance().getTimeInMillis();
 				fullPath = str + File.separator + LOG_FILE + DOT + runtime
 						+ ".txt";
-			} else {
-				fullPath = str + File.separator + LOG_PATH + ".txt";
+				createFile(fullPath);
 			}
-			createFile(fullPath);
 		} else {
 			String str = getAppLogPath(dir);
 			File file = new File(str);

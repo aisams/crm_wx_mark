@@ -111,12 +111,13 @@ public class OkHttpUtil {
     }
 
     private static RequestBody appendMultipartBody(String filePath, Map<String, Object> params) {
-
         File file = new File(filePath);
-        RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
+        String fileName =Utils.addFuffix(file.getName());
+
+                RequestBody fileBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
         MultipartBody.Builder builder = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart("file", file.getName(), fileBody);
+                .addFormDataPart("file", fileName, fileBody);
 
         if (params == null || params.isEmpty()) {
             return builder.build();

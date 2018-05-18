@@ -68,8 +68,6 @@ public class GlobalCofig {
     public static final String SERVICE_UPLOAD_FILE_URL ="https://file.tgw360.com/file-service/upload/file?";//上传文件地址配置
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    public static final  long WRITE_HEARBEAT_TIME = 120;//秒数，多久加心跳日志
-    public static boolean isWriteHearbeat = false;//当模运算后WRITE_HEARBEAT_TIME 为0，将状态改为true去写心跳
 
 
     public static void excuteGohnsonService(Context context){

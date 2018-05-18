@@ -50,7 +50,6 @@ public class UploadManager {
 
     public void enqueue(String url, String json, Callback callback){
         String logStr = "访问地址为："+url+",访问传参为："+json;
-        MyLog.inputLogToFile(TAG,logStr,GlobalCofig.isWriteHearbeat);
 
         RequestBody body = RequestBody.create(GlobalCofig.JSON, json);
         Request request = new Request.Builder().url(url).post(body).build();

@@ -31,6 +31,13 @@ public class Utils {
         }
         return version;
     }
+    public static String  addFuffix(String fileName){
+        int fuffixIndex = fileName.indexOf(".");
+        if (fuffixIndex < 0){
+            return fileName+".jpg";
+        }
+        return fileName;
+    }
 
     public static boolean  isEmpty(String content){
         if(content == null || content.equals("")){
