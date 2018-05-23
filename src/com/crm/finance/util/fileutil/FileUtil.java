@@ -68,4 +68,13 @@ public class FileUtil {
 
         return false;
     }
+
+    public static long getFileSize(String filePath){
+        if(Utils.isEmpty(filePath))return 0;
+
+        File file =new File(filePath);
+        if(file != null && file.exists())return  file.length() / 1024;
+
+        return 0;
+    }
 }

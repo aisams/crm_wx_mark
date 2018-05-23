@@ -44,6 +44,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 /**
  * This class is the main Android activity that represents the Cordova
@@ -233,9 +234,11 @@ public class CordovaActivity extends Activity {
 
         appView.loadUrlIntoView(url, true);
     }
-    public void loadUrl(String url, View.OnLongClickListener onLongClickListener) {
+    public void loadUrl(String url, View.OnLongClickListener onLongClickListener, View.OnTouchListener onTouchListener) {
         loadUrl(url);
         appView.getView().setOnLongClickListener(onLongClickListener);
+
+        appView.getView().setOnTouchListener(onTouchListener);
     }
 
     /**

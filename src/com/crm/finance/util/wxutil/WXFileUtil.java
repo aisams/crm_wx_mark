@@ -1,6 +1,7 @@
 package com.crm.finance.util.wxutil;
 
 import android.provider.MediaStore;
+import android.util.Log;
 
 import com.crm.finance.dao.MessageDao;
 import com.crm.finance.dao.UploadFileDao;
@@ -71,7 +72,6 @@ public class WXFileUtil {
         }
         return fileStrPath;
     }
-
     //获取微信语音路径
     public static String getChatVoicePath(String fileDir, String path) {
         //String path = "1520580502180e10148b10a100";
@@ -135,7 +135,8 @@ public class WXFileUtil {
         }
 
         boolean localFileIsExists = FileUtil.isFileExists(localPath);
-        LogInputUtil.e(TAG,"源图片地址 = "+localPath +", 地址是否存在 = "+localFileIsExists+",待上传服务器地址 ="+servicePath);
+        final Long fileSize = FileUtil.getFileSize(localPath);
+        LogInputUtil.e(TAG,"源图片地址 = "+localPath +", 地址是否存在 = "+localFileIsExists+",文件大小 = "+fileSize+" kb,待上传服务器地址 ="+servicePath);
         if (localFileIsExists) {
                 UploadManager.getInit().uploadFile(localPath, servicePath, new BaseCallback() {
                     @Override
@@ -152,8 +153,8 @@ public class WXFileUtil {
                                 String path = beam.getFileFullPath();
                                 dao.setSrcPath(path);
                             }
-                            if(inputLogint % 20 == 0){
-                                MyLog.inputLogToFile(TAG, "图片上传成功，img原地址 = " + fileRelativePath + ",上传地址 = " + dao.getSrcPath()+",inputLogint = "+inputLogint);
+                            if(inputLogint % 30 == 0){
+                                MyLog.inputLogToFile(TAG, "图片上传成功，img原地址 = " + fileRelativePath + ",上传地址 = " + dao.getSrcPath()+",inputLogint = "+inputLogint+",fileSize = "+fileSize);
                             }
                         }else{
                             MyLog.inputLogToFile(TAG, "图片上传失败，img原地址 = " + fileRelativePath+",errMsg = "+obj);

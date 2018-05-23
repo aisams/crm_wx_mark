@@ -35,7 +35,7 @@ public class WXDataFormJsonUtil {
         try {
             cr = dataTarget.rawQuery("select * from message where createTime > " + message_last_upload_time + " limit " + GlobalCofig.UPLOAD_NUMBER, null);
             if (cr.moveToFirst()) {
-                MyLog.inputLogToFile(TAG,"message 表准备上传数据条数= "+cr.getCount());
+                MyLog.inputLogToFile(TAG,"message 表准备上传数据条数= "+cr.getCount()+",时间为 = "+Utils.transForDate(message_last_upload_time)+"("+message_last_upload_time+")");
                 for (int j = 0; j < cr.getCount(); j++) {
 
                     long msgId = CursorUtil.getLong(cr, "msgId");

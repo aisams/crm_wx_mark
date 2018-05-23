@@ -11,10 +11,14 @@ public class JedisUtil {
     private static Jedis myJedis = null;
     public static Jedis getInit(){
         if(myJedis == null){
-            myJedis = new Jedis(GlobalCofig.REDIS_HOST, GlobalCofig.Port);
-            //myJedis.auth(GlobalCofig.REDIS_AUTH);
-            LogInputUtil.e(TAG,  "redis 连接成功，正在运行 = " + myJedis.ping());
+            if(GlobalCofig.IS_OFFICIAL == 1){
+                myJedis = new Jedis(GlobalCofig.REDIS_HOST_TEST, GlobalCofig.Port_TEST,GlobalCofig.TimeOut);
+            }else{
+                myJedis = new Jedis(GlobalCofig.REDIS_HOST, GlobalCofig.Port,GlobalCofig.TimeOut);
+                myJedis.auth(GlobalCofig.REDIS_AUTH);
+            }
         }
         return  myJedis;
     }
+
 }

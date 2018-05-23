@@ -1,18 +1,22 @@
 
 package com.crm.finance;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.job.JobInfo;
 import android.app.job.JobScheduler;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.StrictMode;
@@ -20,10 +24,12 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.crm.finance.broadcast.BroadcastManager;
 import com.crm.finance.dao.UploadFileDao;
 import com.crm.finance.util.GlobalCofig;
 import com.crm.finance.util.LogInputUtil;
@@ -43,6 +49,8 @@ import com.tencent.bugly.beta.Beta;
 import com.tencent.bugly.crashreport.CrashReport;
 
 import org.apache.cordova.*;
+import org.apache.cordova.engine.SystemWebView;
+import org.apache.cordova.engine.SystemWebViewEngine;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -77,8 +85,10 @@ public class MainActivity extends CordovaActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-          excuteInit();
+        excuteInit();
     }
+
+
 
     public void excuteInit(){
         Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
@@ -99,6 +109,7 @@ public class MainActivity extends CordovaActivity {
     }
 
 
+    float x1 = 0,y1=0,x2=0,y2=0;
 
     public void excuteMain() {
         Bundle extras = getIntent().getExtras();
@@ -122,16 +133,43 @@ public class MainActivity extends CordovaActivity {
         LogInputUtil.e(TAG,"是否输出日志 主页重启="+isInputFileLog);
 
         loadUrl(launchUrl, new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
-                ShareData.getInstance().saveBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,!isNoInputFileLog);
-                isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
+                    @Override
+                    public boolean onLongClick(View view) {
+                        boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG, GlobalCofig.LOG_NO_LOG);
+                        ShareData.getInstance().saveBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG, !isNoInputFileLog);
+                        isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG, GlobalCofig.LOG_NO_LOG);
 
-                showInputLogTip(isNoInputFileLog);
-                return false;
-            }
-        });
+                        showInputLogTip(isNoInputFileLog);
+                        return false;
+                    }
+                }, new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+                        if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                            //当手指按下的时候
+                            x1 = motionEvent.getX();
+                            y1 = motionEvent.getY();
+                        }
+                        if(motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                            //当手指离开的时候
+                            x2 = motionEvent.getX();
+                            y2 = motionEvent.getY();
+                            String str = "x1 = "+x1+",x2 ="+x2+",y1 = "+y1+",y2 ="+y2;
+                            if(y1 - y2 > 50) {
+                                // Log.e(TAG,"手势：向上滑"+str);
+                            } else if(y2 - y1 > 50) {
+                                //Log.e(TAG,"手势：向下滑"+str);
+                            } else if(x1 - x2 > 100) {
+                                Intent service = new Intent(MainActivity.this, UploadDataLogActivity.class);
+                                MainActivity.this.startActivity(service);
+
+                            } else if(x2 - x1 > 100) {
+                            }
+                        }
+                        return false;
+                    }
+                }
+        );
 
         UpdateManager manager = new UpdateManager(MainActivity.this);
         // 检查软件更新
@@ -153,6 +191,9 @@ public class MainActivity extends CordovaActivity {
         //间隔多久去触发广播
         am.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), GlobalCofig.EXECUTE_BROADCAST_INTERVAL, sendIntent);
     }
+
+
+
     public void showInputLogTip(boolean isNoInputLog){
         String tipStr="";
         if(isNoInputLog){

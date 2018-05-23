@@ -3,14 +3,14 @@ package com.crm.finance.util;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.os.Environment;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * Created by Administrator on 2018/4/25 0025.
@@ -31,16 +31,46 @@ public class Utils {
         }
         return version;
     }
-    public static String  addFuffix(String fileName){
+
+    /**
+     * 时间戳转日期
+     *
+     * @param ms
+     * @return
+     */
+    public static String transForDate(Long ms) {
+        String timeStr = "";
+        if (ms == 0) {
+            return timeStr;
+        }
+        try {
+            Date date =new Date(ms);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(date);
+            calendar.set(Calendar.HOUR, calendar.get(Calendar.HOUR) + 8);
+
+            ms = calendar.getTimeInMillis();
+            String format = "yyyy-MM-dd HH:mm:ss";
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
+            timeStr = sdf.format(new Date(Long.valueOf(ms )));
+        }catch (Exception e){
+            LogInputUtil.e(TAG,"时间转换异常，errMSG = "+timeStr);
+        }
+
+        return timeStr;
+
+    }
+
+    public static String addFuffix(String fileName) {
         int fuffixIndex = fileName.indexOf(".");
-        if (fuffixIndex < 0){
-            return fileName+".jpg";
+        if (fuffixIndex < 0) {
+            return fileName + ".jpg";
         }
         return fileName;
     }
 
-    public static boolean  isEmpty(String content){
-        if(content == null || content.equals("")){
+    public static boolean isEmpty(String content) {
+        if (content == null || content.equals("")) {
             return true;
         }
         return false;
