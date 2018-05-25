@@ -71,8 +71,8 @@ public class GlobalCofig {
     public static final String SERVICE_UPLOAD_FILE_URL ="https://file.tgw360.com/file-service/upload/file?";//上传文件地址配置
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    public static final String BROADCAST_WRITE_LOG = "BROADCAST_WRITE_LOG";
-    public static final String BROADCAST_ERR_WRITE_LOG = "BROADCAST_ERR_WRITE_LOG";
+
+    public static final String MESSAGE_LAST_UPLOAD_TIME_ONLY ="message_last_upload_time_only";//消息表最后上传到哪个时间点,不区分数据库
 
 
 

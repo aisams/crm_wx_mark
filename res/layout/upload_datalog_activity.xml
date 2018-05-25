@@ -15,6 +15,7 @@
        android:id="@+id/ext_log_input"
        android:gravity="left"
        android:layout_width="match_parent"
+       android:textSize="12dp"
        android:layout_height="match_parent" />
 
 </LinearLayout>

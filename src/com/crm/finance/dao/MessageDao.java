@@ -27,6 +27,7 @@ public class MessageDao {
     long msgSeq;
     int flag;
     String srcPath = "";
+    long fileSize = 0;//源文件大小
 
     public String getSrcPath() {
         return srcPath;
@@ -34,6 +35,14 @@ public class MessageDao {
 
     public void setSrcPath(String srcPath) {
         this.srcPath = srcPath;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
     }
 
     public int getType() {

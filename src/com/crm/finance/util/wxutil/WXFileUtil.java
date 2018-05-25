@@ -53,20 +53,19 @@ public class WXFileUtil {
             return fileStrPath;
         }
 
-       // fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator + imgNameTag + imgName;
-        fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator  + imgName+".png";
+        fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator  + imgName+".png";//原图
         if(new File(WXFileUtil.getScrParetDir()+fileStrPath).exists()){
             return fileStrPath;
         }
-        fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator  + imgName+".jpg";
+        fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator  + imgName+".jpg";//原图
         if(new File(WXFileUtil.getScrParetDir()+fileStrPath).exists()){
             return fileStrPath;
         }
-        fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator + imgNameTag + imgName+"hd";
+        fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator + imgNameTag + imgName+"hd";//中缩略图
         if(new File(WXFileUtil.getScrParetDir()+fileStrPath).exists()){
             return fileStrPath;
         }
-        fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator + imgNameTag + imgName;
+        fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator + imgNameTag + imgName;//小缩略图
         if(new File(WXFileUtil.getScrParetDir() + fileStrPath).exists()){
             return fileStrPath;
         }
@@ -100,6 +99,9 @@ public class WXFileUtil {
     //添加语音和图片路径
     public static ArrayList<Object> addSrcPath(String wxFolderPath, ArrayList<Object> messages) {
         int size = messages.size();
+        long sumFileSize = 0;
+        long currentTime = System.currentTimeMillis();
+
         for (int i = 0; i < size; i++) {
             MessageDao dao = (MessageDao) messages.get(i);
             if (dao == null) continue;
@@ -112,7 +114,11 @@ public class WXFileUtil {
                 String voicePath = WXFileUtil.getChatVoicePath(wxFolderPath, imagePath);
                 uploadWXVoice(dao, voicePath);
             }
+            sumFileSize = sumFileSize + dao.getFileSize();
         }
+        long lastTime = System.currentTimeMillis();
+        long intervalTime = (lastTime - currentTime)/1000;
+        MyLog.inputLogToFile(TAG,"本次上传文件总大小 "+sumFileSize+" KB,耗时 "+intervalTime +" 秒");
         return messages;
     }
 
@@ -152,6 +158,7 @@ public class WXFileUtil {
                             if(beam != null){
                                 String path = beam.getFileFullPath();
                                 dao.setSrcPath(path);
+                                dao.setFileSize(fileSize);
                             }
                             if(inputLogint % 30 == 0){
                                 MyLog.inputLogToFile(TAG, "图片上传成功，img原地址 = " + fileRelativePath + ",上传地址 = " + dao.getSrcPath()+",inputLogint = "+inputLogint+",fileSize = "+fileSize);
@@ -184,6 +191,7 @@ public class WXFileUtil {
         boolean localFileIsExists = FileUtil.isFileExists(localVoicePath);
 
         LogInputUtil.e(TAG,"待上传源语音地址 = "+localVoicePath +", 语音是否存在 = "+localFileIsExists+",待上传服务器地址 ="+serviceFilePath);
+        final Long fileSize = FileUtil.getFileSize(localVoicePath);
         UploadManager.getInit().uploadFile(localVoicePath, serviceFilePath, new BaseCallback() {
             @Override
             public void Succeed(Object obj) {
@@ -199,6 +207,7 @@ public class WXFileUtil {
                     if(beam != null){
                         String path = beam.getFileFullPath();
                         dao.setSrcPath(path);
+                        dao.setFileSize(fileSize);
                     }
                     MyLog.inputLogToFile(TAG, "语音上传成功 voice原地址 = " + fileRelativePath + ",上传地址 = " + dao.getSrcPath());
                 }

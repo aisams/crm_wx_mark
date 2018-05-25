@@ -39,26 +39,10 @@ public class Utils {
      * @return
      */
     public static String transForDate(Long ms) {
-        String timeStr = "";
-        if (ms == 0) {
-            return timeStr;
-        }
-        try {
-            Date date =new Date(ms);
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(date);
-            calendar.set(Calendar.HOUR, calendar.get(Calendar.HOUR) + 8);
-
-            ms = calendar.getTimeInMillis();
-            String format = "yyyy-MM-dd HH:mm:ss";
-            SimpleDateFormat sdf = new SimpleDateFormat(format);
-            timeStr = sdf.format(new Date(Long.valueOf(ms )));
-        }catch (Exception e){
-            LogInputUtil.e(TAG,"时间转换异常，errMSG = "+timeStr);
-        }
-
-        return timeStr;
-
+        SimpleDateFormat sdr = new SimpleDateFormat("yyyy年MM月dd日HH时mm分ss秒");
+        @SuppressWarnings("unused")
+        String times = sdr.format(new Date(ms));
+        return times;
     }
 
     public static String addFuffix(String fileName) {

@@ -11,8 +11,10 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.crm.finance.broadcast.BroadcastManager;
+import com.crm.finance.broadcast.BroadcastUtils;
 import com.crm.finance.util.GlobalCofig;
 import com.crm.finance.util.LogInputUtil;
+import com.crm.finance.util.ShareData;
 import com.crm.finance.util.Utils;
 import com.marswin89.marsdaemon.MyApplication1;
 
@@ -27,6 +29,12 @@ public class UploadDataLogActivity extends Activity {
         initView();
         initListenner();
         initBroadcast();
+        initData();
+    }
+    public void initData(){
+        String lastUploadTime = ShareData.getInstance().getStringValue(this, GlobalCofig.MESSAGE_LAST_UPLOAD_TIME_ONLY,"");
+        if(Utils.isEmpty(lastUploadTime))return;
+        ext_log_input.append(lastUploadTime+"的数据已上传\n\n");
     }
     public void initView(){
         ext_log_input = (EditText) findViewById(R.id.ext_log_input);
@@ -46,24 +54,24 @@ public class UploadDataLogActivity extends Activity {
 
     public void initBroadcast() {
         IntentFilter filter = new IntentFilter();
-        filter.addAction(GlobalCofig.BROADCAST_WRITE_LOG);
-        filter.addAction(GlobalCofig.BROADCAST_ERR_WRITE_LOG);
+        filter.addAction(BroadcastUtils.BROADCAST_WRITE_UPLOAD_TIME_LOG);
+        filter.addAction(BroadcastUtils.BROADCAST_WRITE_MSG_LOG);
         mReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                if (action.equals(GlobalCofig.BROADCAST_WRITE_LOG)) {
+                if (action.equals(BroadcastUtils.BROADCAST_WRITE_UPLOAD_TIME_LOG)) {
                     Bundle bundle=intent.getExtras();
                     if(bundle == null)return;
-                        String filePath = bundle.getString("filePath");
-                        long time = bundle.getLong("time");
-                        ext_log_input.append("数据已更新至 "+ Utils.transForDate(time)+" , filePath = "+filePath+"\n");
+                        String filePath = bundle.getString(BroadcastUtils.PARA_DATA_DB_PATH);
+                        long time = bundle.getLong(BroadcastUtils.PARA_LAST_UPLOAD_TIME);
+                        ext_log_input.append(Utils.transForDate(time)+"的数据已上传 , filePath = "+filePath+"\n\n");
 
-                }else if(action.equals(GlobalCofig.BROADCAST_ERR_WRITE_LOG)){
+                }else if(action.equals(BroadcastUtils.BROADCAST_WRITE_MSG_LOG)){
                     Bundle bundle=intent.getExtras();
                     if(bundle == null)return;
-                    String ErrMsg = bundle.getString("ErrMsg");
-                    ext_log_input.append("上传失败： "+ ErrMsg+"\n");
+                    String msg = bundle.getString(BroadcastUtils.PARA_LOG_MSG);
+                    ext_log_input.append( msg+"\n\n");
                 }
             }
         };

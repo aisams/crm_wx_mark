@@ -18,6 +18,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.crm.finance.broadcast.BroadcastManager;
+import com.crm.finance.broadcast.BroadcastUtils;
 import com.crm.finance.dao.DevInfoDao;
 import com.crm.finance.dao.HeartCofigDao;
 import com.crm.finance.dao.ImgFlagDao;
@@ -35,6 +36,7 @@ import com.crm.finance.util.ShareData;
 import com.crm.finance.util.UploadManager;
 import com.crm.finance.util.Utils;
 import com.crm.finance.util.WXDataFormJsonUtil;
+import com.crm.finance.util.fileutil.FileUtil;
 import com.crm.finance.util.wxutil.WXFileUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -92,6 +94,23 @@ public class GohnsonService extends Service {
         super.onCreate();
         initBaseContnet();
     }
+    public void testUploadImg(){
+        long sumFileSize = 0;
+        long currentTime = System.currentTimeMillis();
+
+        for (int i = 0; i < 20; i++) {
+            MessageDao dao = new MessageDao();
+            //String imgPath = "fdfc63658ec94cd3845d2d5d9627c076/image2/57/d9/57d9f13a5ea86ade439b965e3a117de5.jpg";
+            String imgPath = "fdfc63658ec94cd3845d2d5d9627c076/image2/a4/be/th_a4beb600dcf1d8584c944af839f10f4ehd";
+            WXFileUtil.uploadWXImage(dao, imgPath,i);
+            sumFileSize = sumFileSize + dao.getFileSize();
+        }
+
+        long lastTime = System.currentTimeMillis();
+        long intervalTime = (lastTime - currentTime)/1000;
+        MyLog.inputLogToFile(TAG,"本次上传文件总大小 "+sumFileSize+" KB,耗时 "+intervalTime +" 秒");
+    }
+
     public void initBaseContnet(){
         LogInputUtil.e(TAG, "GohnsonService 启动 onCreate");
         CrashReport.initCrashReport(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
@@ -112,7 +131,6 @@ public class GohnsonService extends Service {
         } catch (Exception e) {
             MyLog.inputLogToFile(TAG, "onStartCommand 启动异常，msg = " + e.getMessage());
         }
-
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -292,6 +310,7 @@ public class GohnsonService extends Service {
                             String noChangeStr = "文件无改变，不操作该数据库，lastModifiedTime = " + fileChangeTime + ",saveTime = " + saveChangeTime + ",filePath = " + f.getPath();
                             MyLog.inputLogToFile(TAG, noChangeStr);
                             pushHearBeat();
+                            BroadcastUtils.sendDataUploadErrLog(noChangeStr);
                             continue;
                         }
 
@@ -310,7 +329,12 @@ public class GohnsonService extends Service {
 
                         if (dbFile.exists())
                             dbFile.delete();
+
                         Common.copyFile(f.getPath(), dbFile.getPath());
+                        if(!FileUtil.isFileExists(dbFile.getPath())){
+                            MyLog.inputLogToFile(TAG,"数据库不存在，filePath = "+dbFile.getPath());
+                            continue;
+                        }
 
                         //开线程，部分机型在不开线程情况下会阻塞进程
                         new Thread(new Runnable() {
@@ -337,6 +361,7 @@ public class GohnsonService extends Service {
                         } catch (Exception e) {
                             String exceptionStr = "异常 ：上传数据信息失败:" + e.getLocalizedMessage() + ",filePath = " + (dbFile == null ? "" : dbFile.getPath());
                             MyLog.inputLogToFile(TAG, exceptionStr);
+                            BroadcastUtils.sendDataUploadErrLog(exceptionStr);
                         } finally {
                             if (dataTarget != null)
                                 dataTarget.close();
@@ -558,25 +583,17 @@ public class GohnsonService extends Service {
 
             MyLog.inputLogToFile(TAG, key + "：redis 上传成功 ，message数据有更新，时间为= " + Utils.transForDate(lastUploadTimeTemporary) + "("+lastUploadTimeTemporary+"),旧时间 = "+Utils.transForDate(lastUploadTime) +"("+lastUploadTime+"),pushValue = " + pushValue + ",filePath = " + file.getPath());
 
-            sendDataUploadLog(lastUploadTimeTemporary,file.getPath());
+            ShareData.getInstance().saveStringValue(this, GlobalCofig.MESSAGE_LAST_UPLOAD_TIME_ONLY, Utils.transForDate(lastUploadTimeTemporary));
+            BroadcastUtils.sendDataUploadLog(lastUploadTimeTemporary,file.getPath());
             return true;
         } catch (Exception e) {
-            MyLog.inputLogToFile(TAG, key + ":redis 连接失败, errMsg = " + e.getLocalizedMessage());
-            sendDataUploadErrLog(e.getLocalizedMessage());
+            String errMsg = key + ":redis 连接失败, errMsg = " + e.getLocalizedMessage();
+            MyLog.inputLogToFile(TAG, errMsg);
+            BroadcastUtils.sendDataUploadErrLog(errMsg);
             return false;
         }
     }
-    public void sendDataUploadLog(long lastUploadTimeTemporary,String filePath){
-        Intent mIntent = new Intent();
-        mIntent.putExtra("time",lastUploadTimeTemporary);
-        mIntent.putExtra("filePath",filePath);
-        BroadcastManager.sendShowTopRankData(mIntent,GlobalCofig.BROADCAST_WRITE_LOG);
-    }
-    public void sendDataUploadErrLog(String ErrMsg){
-        Intent mIntent = new Intent();
-        mIntent.putExtra("ErrMsg",ErrMsg);
-        BroadcastManager.sendShowTopRankData(mIntent,GlobalCofig.BROADCAST_ERR_WRITE_LOG);
-    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

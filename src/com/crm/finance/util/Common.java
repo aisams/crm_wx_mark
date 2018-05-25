@@ -186,7 +186,7 @@ public class Common {
                 fs.close();
             }
         } catch (Exception e) {
-            LogInputUtil.e(TAG, "复制单个文件操作出错");
+            MyLog.inputLogToFile(TAG,"复制文件失败，filePath = "+newPath+",errMsg = "+e.getLocalizedMessage());
         }
     }
 
