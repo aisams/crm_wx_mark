@@ -229,12 +229,10 @@ android {
     if (cdvReleaseSigningPropertiesFile) {
         signingConfigs {
             release {
-                // These must be set or Gradle will complain (even if they are overridden).
-                keyAlias = ""
-                keyPassword = "__unset"
-                // And these must be set to non-empty in order to have the signing step added to the task graph.
-                storeFile = null
-                storePassword = "__unset"
+                keyAlias 'qifuxiang'
+                keyPassword 'qifuxiang'
+                storeFile file('F:/tool/company/Android打包密钥/crm_keypass/crm-release-key.keystore')
+                storePassword 'qifuxiang'
             }
         }
         buildTypes {

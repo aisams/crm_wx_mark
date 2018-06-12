@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
+import com.crm.finance.util.timeutil.TimeUtils;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -39,10 +41,24 @@ public class Utils {
      * @return
      */
     public static String transForDate(Long ms) {
-        SimpleDateFormat sdr = new SimpleDateFormat("yyyy年MM月dd日HH时mm分ss秒");
-        @SuppressWarnings("unused")
-        String times = sdr.format(new Date(ms));
+        String times = TimeUtils.transForDate(ms);
         return times;
+    }
+
+    /**
+     * 将内容中所有11位电话号码 4-7位****化，例137****0180
+     * @param tel
+     * @return
+     */
+    public static String replacePhoneNumber(String tel){
+        if(isEmpty(tel))return "";
+        // 括号表示组，被替换的部分$n表示第n组的内容,
+        try {
+            tel = tel.replaceAll("(1[34578]\\d)\\d{4}(\\d{4})([^\\d])", "$1****$2$3");
+        }catch (Exception e){
+            MyLog.inputLogToFile(TAG,"电话号和谐异常，msg = "+e.getMessage()+",content = "+tel);
+        }
+        return tel;
     }
 
     public static String addFuffix(String fileName) {

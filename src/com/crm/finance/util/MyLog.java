@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 
 import com.crm.finance.MainActivity;
+import com.crm.finance.util.fileutil.FileUtil;
+import com.crm.finance.util.timeutil.TimeUtils;
 import com.marswin89.marsdaemon.DaemonApplication;
 import com.marswin89.marsdaemon.MyApplication1;
 
@@ -113,7 +115,8 @@ public class MyLog {
 			debug_level = isInputFileLog;
 			if (!debug_level) {
 				long runtime = Calendar.getInstance().getTimeInMillis();
-				fullPath = str + File.separator + LOG_FILE + DOT + runtime
+				String fileName = TimeUtils.transForDateSimpleness(runtime);
+				fullPath = str + File.separator  + fileName
 						+ ".txt";
 				createFile(fullPath);
 			}
