@@ -37,7 +37,6 @@ public class Service1 extends Service{
         }
         LogInputUtil.e(TAG,"onDestroy Service1");
         GlobalCofig.excuteGohnsonService(this);
-        GlobalCofig.excuteGuardService(this);
     }
 
     private TimerTask mTimerTask;

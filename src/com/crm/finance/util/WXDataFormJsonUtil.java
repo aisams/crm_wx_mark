@@ -169,16 +169,20 @@ public class WXDataFormJsonUtil {
         return daoList;
     }
 
-    public static ArrayList<Object> getRcontactDataInDB(SQLiteDatabase dataTarget) {
+    public static ArrayList<Object> getRcontactDataInDB(Context context,SQLiteDatabase dataTarget,File file) {
+        int rcontact_last_upload_index = ShareData.getInstance().getIntValue(context, GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath(), 0);
+
         Cursor cr = null;
         ArrayList<Object> daoList = new ArrayList<Object>();
         try {
-             cr = dataTarget.rawQuery("select * from rcontact", null);
+             //cr = dataTarget.rawQuery("select * from rcontact", null);
+             cr = dataTarget.rawQuery("select * from rcontact limit "+rcontact_last_upload_index+"," + GlobalCofig.RCONTACTI_UPLOAD_NUMBER, null);
             if (cr.moveToFirst()) {
-                MyLog.inputLogToFile(TAG, "rcontact 表准备上传数据条数= " + cr.getCount());
+                int count = cr.getCount();
+                MyLog.inputLogToFile(TAG, "rcontact 表准备上传数据条数= " + count);
+                ShareData.getInstance().saveIntValue(context, GlobalCofig.RCONTACT_UPLOAD_INDEX_TEMPORARY + file.getPath(), count);
 
-                for (int j = 0; j < cr.getCount(); j++) {
-
+                for (int j = 0; j < count; j++) {
                     String username = CursorUtil.getString(cr, "username");
                     String alias = CursorUtil.getString(cr, "alias");
                     String conRemark = CursorUtil.getString(cr, "conRemark");
@@ -222,7 +226,6 @@ public class WXDataFormJsonUtil {
                     dao.setDeleteFlag(deleteFlag);
                     dao.setContactLabelIds(contactLabelIds);
 
-
                     daoList.add(dao);
                     cr.moveToNext();
                 }
@@ -230,6 +233,7 @@ public class WXDataFormJsonUtil {
             cr.close();
         } catch (Exception e) {
             MyLog.inputLogToFile(TAG, "查询表chatroom异常，msg = " + e.getMessage());
+            daoList = null;
         } finally {
             if (cr != null)
                 cr.close();
@@ -277,17 +281,6 @@ public class WXDataFormJsonUtil {
 
         return daoList;
     }
-  /*  public static String getUploadJsonStr(String tag,ArrayList<Object> dataList,String pathUin){
-        if(tag == null || tag.equals("") || dataList == null || dataList.size() <= 0)return "";
-
-        UploadDataDao uploadDataDao = new UploadDataDao();
-        uploadDataDao.setUserUin(pathUin);
-        uploadDataDao.setUserTag(tag);
-        uploadDataDao.setData(dataList);
-        Gson gson = new Gson();
-        String json = gson.toJson(uploadDataDao);
-        return json;
-    }*/
 
     /**
      * 打包封装需要上传的数据
@@ -301,7 +294,6 @@ public class WXDataFormJsonUtil {
         uploadDataDao.setUserName(userName);
         uploadDataDao.setData(dataList);
         Gson gson = new GsonBuilder().serializeNulls().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
-        //Gson gson = new Gson();
         String json = gson.toJson(uploadDataDao);
         return json;
     }

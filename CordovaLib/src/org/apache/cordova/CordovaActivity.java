@@ -35,6 +35,7 @@ import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -101,6 +102,10 @@ public class CordovaActivity extends Activity {
     protected ArrayList<PluginEntry> pluginEntries;
     protected CordovaInterfaceImpl cordovaInterface;
 
+    public void exitApp() {
+        System.exit(0);
+        //this.webView.getPluginManager().postMessage("exit", null);
+    }
     /**
      * Called when the activity is first created.
      */
@@ -239,7 +244,9 @@ public class CordovaActivity extends Activity {
         appView.getView().setOnLongClickListener(onLongClickListener);
 
         appView.getView().setOnTouchListener(onTouchListener);
+
     }
+
 
     /**
      * Called when the system is about to start resuming a previous activity.

@@ -4,7 +4,6 @@ import android.content.Context;
 
 import com.crm.finance.util.Debug;
 import com.crm.finance.util.MyLog;
-import com.tencent.bugly.crashreport.CrashReport;
 
 /**
  * Implementation 1<br/>

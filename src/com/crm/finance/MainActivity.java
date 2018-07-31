@@ -1,83 +1,33 @@
 
 package com.crm.finance;
 
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.app.job.JobInfo;
-import android.app.job.JobScheduler;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.StrictMode;
-import android.preference.PreferenceManager;
-import android.provider.Settings;
+import android.os.Handler;
+import android.os.Looper;
 import android.telephony.TelephonyManager;
-import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
-import com.crm.finance.broadcast.BroadcastManager;
-import com.crm.finance.dao.UploadFileDao;
 import com.crm.finance.util.GlobalCofig;
 import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.MyLog;
-import com.crm.finance.util.OkHttpUtil;
 import com.crm.finance.util.ShareData;
-import com.crm.finance.util.UploadManager;
 import com.crm.finance.util.Utils;
-import com.crm.finance.util.callback.BaseCallback;
-import com.crm.finance.util.fileutil.FileUtil;
-import com.crm.finance.util.wxutil.WXFileUtil;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.marswin89.marsdaemon.Service1;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
-import com.tencent.bugly.crashreport.CrashReport;
 
 import org.apache.cordova.*;
-import org.apache.cordova.engine.SystemWebView;
-import org.apache.cordova.engine.SystemWebViewEngine;
-import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 import cn.jpush.android.api.JPushInterface;
 import cn.jpush.android.api.TagAliasCallback;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 public class MainActivity extends CordovaActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
@@ -88,14 +38,23 @@ public class MainActivity extends CordovaActivity {
         excuteInit();
     }
 
-
-
     public void excuteInit(){
-        Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
+        initBugly();
         showLogTip();
         excuteMain();
     }
+    public void initBugly(){
 
+        Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
+
+     /*   Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Beta.checkUpgrade();
+            }
+        });*/
+    }
     public void showLogTip(){
         boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
 
@@ -105,7 +64,7 @@ public class MainActivity extends CordovaActivity {
         }else{
             logStr="有日志";
         }
-        LogInputUtil.showSingleTosatShort(this, Utils.getVersionNumber(this)+"_"+logStr+"版本");
+        LogInputUtil.showSingleTosatShort(this, Utils.getVersionNumber(this)+"_"+logStr+"版本!");
     }
 
 
@@ -145,25 +104,24 @@ public class MainActivity extends CordovaActivity {
                 }, new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View view, MotionEvent motionEvent) {
-                        if(motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                        if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
                             //当手指按下的时候
                             x1 = motionEvent.getX();
                             y1 = motionEvent.getY();
                         }
-                        if(motionEvent.getAction() == MotionEvent.ACTION_UP) {
+                        if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                             //当手指离开的时候
                             x2 = motionEvent.getX();
                             y2 = motionEvent.getY();
-                            String str = "x1 = "+x1+",x2 ="+x2+",y1 = "+y1+",y2 ="+y2;
-                            if(y1 - y2 > 50) {
+                            String str = "x1 = " + x1 + ",x2 =" + x2 + ",y1 = " + y1 + ",y2 =" + y2;
+                            if (y1 - y2 > 50) {
                                 // Log.e(TAG,"手势：向上滑"+str);
-                            } else if(y2 - y1 > 50) {
+                            } else if (y2 - y1 > 50) {
                                 //Log.e(TAG,"手势：向下滑"+str);
-                            } else if(x1 - x2 > 100) {
+                            } else if (x1 - x2 > 100) {
                                 Intent service = new Intent(MainActivity.this, UploadDataLogActivity.class);
                                 MainActivity.this.startActivity(service);
-
-                            } else if(x2 - x1 > 100) {
+                            } else if (x2 - x1 > 100) {
                             }
                         }
                         return false;
@@ -250,4 +208,9 @@ public class MainActivity extends CordovaActivity {
         return true;
     }
 
+    @Override
+    public void onDestroy() {
+        System.exit(0);
+        super.onDestroy();
+    }
 }

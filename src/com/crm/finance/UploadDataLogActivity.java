@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,11 +18,13 @@ import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.ShareData;
 import com.crm.finance.util.Utils;
 import com.marswin89.marsdaemon.MyApplication1;
+import com.tencent.bugly.Bugly;
+import com.tencent.bugly.beta.Beta;
 
 public class UploadDataLogActivity extends Activity {
     private static final String TAG = UploadDataLogActivity.class.getSimpleName();
     EditText ext_log_input;
-    Button btn_send_broadcast;
+    Button btn_send_broadcast,btn_update;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +34,11 @@ public class UploadDataLogActivity extends Activity {
         initBroadcast();
         initData();
     }
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        LogInputUtil.e(TAG,"退出2");
+        return super.onKeyDown(keyCode, event);
+    }
     public void initData(){
         String lastUploadTime = ShareData.getInstance().getStringValue(this, GlobalCofig.MESSAGE_LAST_UPLOAD_TIME_ONLY,"");
         if(Utils.isEmpty(lastUploadTime))return;
@@ -39,6 +47,7 @@ public class UploadDataLogActivity extends Activity {
     public void initView(){
         ext_log_input = (EditText) findViewById(R.id.ext_log_input);
         btn_send_broadcast =  (Button)findViewById(R.id.btn_send_broadcast);
+        btn_update =  (Button)findViewById(R.id.btn_update);
     }
     public void initListenner(){
         btn_send_broadcast.setOnClickListener(new View.OnClickListener() {
@@ -46,6 +55,14 @@ public class UploadDataLogActivity extends Activity {
             public void onClick(View view) {
                 //BroadcastManager.sendShowTopRankData(GlobalCofig.BROADCAST_WRITE_LOG);
                 ext_log_input.setText("");
+            }
+        });
+        btn_update.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LogInputUtil.showSingleTosat(UploadDataLogActivity.this,"点击");
+                Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
+                Beta.checkUpgrade();
             }
         });
     }

@@ -5,14 +5,11 @@ import android.os.Environment;
 import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.MyLog;
 import com.crm.finance.util.Utils;
-import com.crm.finance.util.wxutil.WXFileUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.channels.FileChannel;
 
 /**
  * Created by Administrator on 2018/5/8 0008.

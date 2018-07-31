@@ -40,7 +40,7 @@ public class GlobalCofig {
     public static final String REDIS_AUTH ="asdfsdf$%324%3423$SDfsdf674534112@@##@#$%^&*(";//redis auth
     public static final int TimeOut =10000;
 
-     public static final String REDIS_HOST_TEST ="172.18.44.190";
+     public static final String REDIS_HOST_TEST ="113.108.114.194";
     public static final int Port_TEST =6379;//;//redis port
 
 
@@ -51,15 +51,18 @@ public class GlobalCofig {
     public static final String REDIS_KEY_IMGFLAG ="wx_imgflag_table_datas";
     public static final String REDIS_KEY_USERINFO ="wx_userinfo_table_datas";
 
-
-
     public static final String MESSAGE_LAST_UPLOAD_TIME ="message_last_upload_time_";//消息表当前取到哪个时间点,拼接文件名以区分不同用户数据库
     public static final String MESSAGE_LAST_UPLOAD_TIME_TEMPORARY ="message_last_upload_time_temporary_";//消息表当前取到哪一个临时时间，当上传成功后更改保存MESSAGE_LAST_UPLOAD_TIME，若没上传成功，不更新，拼接文件名以区分不同数据库
-    public static final int UPLOAD_NUMBER =500;//每次上传最大条数
+    public static final int UPLOAD_NUMBER =500;//信息表每次上传最大条数
+
+    public static final String RCONTACT_LAST_UPLOAD_INDEX ="rcontact_last_upload_index_";//聊天会话表当前取到哪个下标,拼接文件名以区分不同用户数据库
+    public static final String RCONTACT_UPLOAD_INDEX_TEMPORARY ="rcontact_last_upload_index_temporary_";//聊天会话表当前取到哪一个临时下标，当上传成功后更改保存RCONTACT_LAST_UPLOAD_INDEX，若没上传成功，不更新，拼接文件名以区分不同数据库
+    public static final int RCONTACTI_UPLOAD_NUMBER =500;//聊天会话表每次上传最大条数
 
     public static final long EXECUTE_SERVICE_INTERVAL =1000 * 10;//该时间内调用多次服务只执行一次,防止广播多次触发
-    public static final long EXECUTE_BROADCAST_INTERVAL =  1000 * 120  ;//执行数据上传间隔
+    public static final long EXECUTE_BROADCAST_INTERVAL =  1000 * 120  ;//广播执行数据上传间隔，不同版本时间其实不可控，只是辅助手段
     public static final long  EXECUTE_HEARBEAT_INTERVAL = 1000 * 15  ;//执行心跳包间隔
+    public static final long  EXIST_MAC_TIME = 1000 * 60 * 180 ;//后台进程存在最大时长，当时间到了杀掉进程重启，目的是清内存
 
     public static final String LAST_EXECUTE_SERVICE_TIME ="last_execute_service_time";//每近的调用上传服务时间，若短期内多次调用不重复执行
 

@@ -1,9 +1,8 @@
 package com.crm.finance.util.wxutil;
 
-import android.provider.MediaStore;
-import android.util.Log;
-
+import com.crm.finance.dao.ImgFlagDao;
 import com.crm.finance.dao.MessageDao;
+import com.crm.finance.dao.RcontactDao;
 import com.crm.finance.dao.UploadFileDao;
 import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.MyLog;
@@ -14,8 +13,6 @@ import com.crm.finance.util.fileutil.FileUtil;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import org.apache.cordova.file.FileUtils;
-
 import java.io.File;
 import java.util.ArrayList;
 
@@ -24,10 +21,10 @@ import java.util.ArrayList;
  * Created by Administrator on 2018/5/8 0008.
  */
 
-public class WXFileUtil {
+public class WXBusinessUtil {
     public static final String WX_IMG_DIR = "wx_mark_img";
     public static final String WX_VOICE_DIR = "wx_mark_voice";
-    public static String TAG = WXFileUtil.class.getSimpleName();
+    public static String TAG = WXBusinessUtil.class.getSimpleName();
 
     //获取微信图片路径,type 0小图，1中图，2原图
     public static String getChatImgPath(String fileDir, String path) {
@@ -54,19 +51,19 @@ public class WXFileUtil {
         }
 
         fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator  + imgName+".png";//原图
-        if(new File(WXFileUtil.getScrParetDir()+fileStrPath).exists()){
+        if(new File(WXBusinessUtil.getScrParetDir()+fileStrPath).exists()){
             return fileStrPath;
         }
         fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator  + imgName+".jpg";//原图
-        if(new File(WXFileUtil.getScrParetDir()+fileStrPath).exists()){
+        if(new File(WXBusinessUtil.getScrParetDir()+fileStrPath).exists()){
             return fileStrPath;
         }
         fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator + imgNameTag + imgName+"hd";//中缩略图
-        if(new File(WXFileUtil.getScrParetDir()+fileStrPath).exists()){
+        if(new File(WXBusinessUtil.getScrParetDir()+fileStrPath).exists()){
             return fileStrPath;
         }
         fileStrPath = fileDir + File.separator + "image2" + File.separator + dir + File.separator + dir2 + File.separator + imgNameTag + imgName;//小缩略图
-        if(new File(WXFileUtil.getScrParetDir() + fileStrPath).exists()){
+        if(new File(WXBusinessUtil.getScrParetDir() + fileStrPath).exists()){
             return fileStrPath;
         }
         return fileStrPath;
@@ -108,10 +105,10 @@ public class WXFileUtil {
             int type = dao.getType();
             String imagePath = dao.getImgPath();
             if (type == 3) {//类型3为图片，34为语音，1为文本
-                String imgPath = WXFileUtil.getChatImgPath(wxFolderPath, imagePath);
+                String imgPath = WXBusinessUtil.getChatImgPath(wxFolderPath, imagePath);
                 uploadWXImage(dao, imgPath,i);
             } else if (type == 34) {
-                String voicePath = WXFileUtil.getChatVoicePath(wxFolderPath, imagePath);
+                String voicePath = WXBusinessUtil.getChatVoicePath(wxFolderPath, imagePath);
                 uploadWXVoice(dao, voicePath);
             }
             sumFileSize = sumFileSize + dao.getFileSize();
@@ -133,7 +130,7 @@ public class WXFileUtil {
         if (dao == null || Utils.isEmpty(fileRelativePath)) return;
 
         String imageFuffix =".jpg";
-        String localPath = WXFileUtil.getScrParetDir() + fileRelativePath;
+        String localPath = WXBusinessUtil.getScrParetDir() + fileRelativePath;
 
         String servicePath =WX_IMG_DIR +File.separator+ fileRelativePath ;
         if(!isHaveImgFuffix(servicePath)){
@@ -186,7 +183,7 @@ public class WXFileUtil {
     //上传语音
     public static void uploadWXVoice(final MessageDao dao, final String fileRelativePath) {
         if (dao == null || Utils.isEmpty(fileRelativePath)) return;
-        String localVoicePath =WXFileUtil.getScrParetDir() + fileRelativePath;
+        String localVoicePath = WXBusinessUtil.getScrParetDir() + fileRelativePath;
         String serviceFilePath =WX_VOICE_DIR + File.separator +fileRelativePath;
         boolean localFileIsExists = FileUtil.isFileExists(localVoicePath);
 
@@ -220,4 +217,24 @@ public class WXFileUtil {
         });
     }
 
+    /**
+     *设备好友头像
+     * @param rcontacts 好友例表
+     * @param imgFlags 图片例表
+     */
+    public static  void setFriendHeadImg(ArrayList<Object> rcontacts,ArrayList<Object> imgFlags){
+        for (int i = 0; i < rcontacts.size(); i++) {
+            RcontactDao rcontactDao = (RcontactDao) rcontacts.get(i);
+            for (int j = 0; j < imgFlags.size(); j++) {
+                //获取微信好友的头像信息
+                ImgFlagDao imgFlagDao = (ImgFlagDao) imgFlags.get(j);
+                if (imgFlagDao.getUsername().equals(rcontactDao.getUsername())) {
+                    //Log.e(TAG,  rcontactDao.getUsername()+"==》"+imgFlagDao.getUsername()+":"+imgFlagDao.getReserved2());
+                    rcontactDao.setSmallHeadImgUrl(imgFlagDao.getReserved2());//绑定小头像（注：getReserved1()为大头像）
+                    rcontactDao.setBigHeadImgUrl(imgFlagDao.getReserved1());
+                    break;
+                }
+            }
+        }
+    }
 }
