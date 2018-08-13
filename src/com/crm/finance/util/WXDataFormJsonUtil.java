@@ -16,6 +16,8 @@ import net.sqlcipher.database.SQLiteDatabase;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Dipa on 2017/7/18.
@@ -168,10 +170,24 @@ public class WXDataFormJsonUtil {
 
         return daoList;
     }
-
+    //获取所有会话聊天路径和jsonhashcode，支持删除重新上传好友
+    public static void addRcontactPath(Context context, String rcontactPath){
+        Set<String> rcontactSer = ShareData.getInstance().getStringSetValue(context,GlobalCofig.ALL_RCONTACT_PATH, new HashSet<String>());
+        rcontactSer.add(rcontactPath);
+        ShareData.getInstance().saveStringSetValue(GlobalCofig.ALL_RCONTACT_PATH,rcontactSer);
+    }
+    public static void cleanRcontactPath(Context context){
+        Set<String> rcontactSer = ShareData.getInstance().getStringSetValue(context,GlobalCofig.ALL_RCONTACT_PATH, new HashSet<String>());
+       for(String pathStr:rcontactSer){
+           ShareData.getInstance().saveIntValue(context, pathStr, 0);
+           LogInputUtil.e(TAG,"清除好友路径："+pathStr);
+       }
+    }
     public static ArrayList<Object> getRcontactDataInDB(Context context,SQLiteDatabase dataTarget,File file) {
-        int rcontact_last_upload_index = ShareData.getInstance().getIntValue(context, GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath(), 0);
+        String RCONTACT_LAST_UPLOAD_INDEX_PATH = GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath();
 
+        int rcontact_last_upload_index = ShareData.getInstance().getIntValue(context, RCONTACT_LAST_UPLOAD_INDEX_PATH, 0);//上一次更新到哪个下标
+        LogInputUtil.e(TAG,"最后rcontact下标"+rcontact_last_upload_index+",path="+RCONTACT_LAST_UPLOAD_INDEX_PATH);
         Cursor cr = null;
         ArrayList<Object> daoList = new ArrayList<Object>();
         try {

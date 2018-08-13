@@ -180,7 +180,7 @@ public class Common {
                 FileOutputStream fs = new FileOutputStream(newPath);
                 byte[] buffer = new byte[8192];
                 int i = 0;
-                MyLog.inputLogToFile(TAG,"开始数据库!");
+                MyLog.inputLogToFile(TAG,"准备复制数据库!");
                 while ((byteRead = inStream.read(buffer)) != -1) {
                     i++;
                     if(i%10000 == 0){

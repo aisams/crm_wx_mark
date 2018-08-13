@@ -17,6 +17,7 @@ import com.crm.finance.util.GlobalCofig;
 import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.ShareData;
 import com.crm.finance.util.Utils;
+import com.crm.finance.util.WXDataFormJsonUtil;
 import com.marswin89.marsdaemon.MyApplication1;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
@@ -24,7 +25,7 @@ import com.tencent.bugly.beta.Beta;
 public class UploadDataLogActivity extends Activity {
     private static final String TAG = UploadDataLogActivity.class.getSimpleName();
     EditText ext_log_input;
-    Button btn_send_broadcast,btn_update;
+    Button btn_send_broadcast,btn_update,btn_upload_rcontact;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +49,7 @@ public class UploadDataLogActivity extends Activity {
         ext_log_input = (EditText) findViewById(R.id.ext_log_input);
         btn_send_broadcast =  (Button)findViewById(R.id.btn_send_broadcast);
         btn_update =  (Button)findViewById(R.id.btn_update);
+        btn_upload_rcontact =  (Button)findViewById(R.id.btn_upload_rcontact);
     }
     public void initListenner(){
         btn_send_broadcast.setOnClickListener(new View.OnClickListener() {
@@ -57,10 +59,16 @@ public class UploadDataLogActivity extends Activity {
                 ext_log_input.setText("");
             }
         });
+        btn_upload_rcontact.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                WXDataFormJsonUtil.cleanRcontactPath(UploadDataLogActivity.this);
+                LogInputUtil.showSingleTosat(UploadDataLogActivity.this,"正在重新上传!");
+            }
+        });
         btn_update.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LogInputUtil.showSingleTosat(UploadDataLogActivity.this,"点击");
                 Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
                 Beta.checkUpgrade();
             }

@@ -65,6 +65,7 @@ public class GlobalCofig {
     public static final long  EXIST_MAC_TIME = 1000 * 60 * 180 ;//后台进程存在最大时长，当时间到了杀掉进程重启，目的是清内存
 
     public static final String LAST_EXECUTE_SERVICE_TIME ="last_execute_service_time";//每近的调用上传服务时间，若短期内多次调用不重复执行
+    public static final String ALL_RCONTACT_PATH ="all_rcontact_path";//所有好友路径，支持删除重新上传
 
     public static final String BUGLY_ID ="34420b014b";//buglyId
     public static final boolean BUGLY_ISDEBUG =true;//bugly会详细打出日志并上报，上线时请关闭

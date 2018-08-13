@@ -2,11 +2,14 @@ package com.crm.finance;
 
 import android.app.Notification;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
+import android.util.ArraySet;
 
 import com.crm.finance.broadcast.BroadcastUtils;
 import com.crm.finance.dao.DevInfoDao;
@@ -37,7 +40,10 @@ import org.w3c.dom.NodeList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -387,6 +393,7 @@ public class GohnsonService extends Service {
         }*/
 
         boolean allRcontactUploadSucceed = false;
+        addRcontactAllPath(this,file);
         for (int i = 0; i < 100; i++) {
             boolean rcontactUploadSucceed = false;
             LogInputUtil.e(TAG, "第" + i + "次查询rcontact表");
@@ -453,6 +460,16 @@ public class GohnsonService extends Service {
             pushHearBeat();
         }
     }
+    //将好友临时下标，当前下标，缓存hashCode路径保存起来，便于清除好友重新上传
+    public void addRcontactAllPath(Context context,File file){
+        String index = GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath();
+        String indexTemporary = GlobalCofig.RCONTACT_UPLOAD_INDEX_TEMPORARY + file.getPath();
+        String hashKey = GlobalCofig.REDIS_KEY_CONTACT + "_" + file.getPath();
+
+        WXDataFormJsonUtil.addRcontactPath(context,index);
+        WXDataFormJsonUtil.addRcontactPath(context,indexTemporary);
+        WXDataFormJsonUtil.addRcontactPath(context,hashKey);
+    }
 
 
     public boolean uploadDataToRedis(String key, String jsonValue, File file) {
@@ -469,21 +486,25 @@ public class GohnsonService extends Service {
             Jedis myJedis = JedisUtil.getInit();
             MyLog.inputLogToFile(TAG, "redis 连接成功，正在运行 = " + myJedis.ping());
             long pushValue = myJedis.lpush(key, jsonValue);
-
-            int rcontact_upload_index_temporary = ShareData.getInstance().getIntValue(this, GlobalCofig.RCONTACT_UPLOAD_INDEX_TEMPORARY + file.getPath(), 0);
-
-            String lastUploadIndexStr = GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath();
-            int rcontact_last_upload_index = ShareData.getInstance().getIntValue(this, lastUploadIndexStr, 0);
-            ShareData.getInstance().saveIntValue(this, lastUploadIndexStr, rcontact_last_upload_index + rcontact_upload_index_temporary);
-
+            addRcontactIndex(key,file);
             ShareData.getInstance().saveIntValue(this, hashKey, newJsonHashCode);
             MyLog.inputLogToFile(TAG, "redis上传成功，数据有更新" + key + "，newJsonHashCode = " + newJsonHashCode + ",oldJsonHashCode = " + oldJsonHashCode + ",pushValue = " + pushValue + ",filePath = " + file.getPath());
-
-
             return true;
         } catch (Exception e) {
             MyLog.inputLogToFile(TAG, "redis 连接失败, errMsg = " + e.getMessage() + ", hashKey = " + hashKey);
             return false;
+        }
+    }
+    //只保存rcontact下标
+    public void addRcontactIndex(String key,File file){
+        if(key.equals(GlobalCofig.REDIS_KEY_CONTACT)){
+            String indexTmporaryStr = GlobalCofig.RCONTACT_UPLOAD_INDEX_TEMPORARY + file.getPath();//临时下标
+            int rcontact_upload_index_temporary = ShareData.getInstance().getIntValue(this, indexTmporaryStr, 0);//临时下标
+
+            String lastUploadIndexStr = GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath();//真实下标
+            int rcontact_last_upload_index = ShareData.getInstance().getIntValue(this, lastUploadIndexStr, 0);
+            ShareData.getInstance().saveIntValue(this, lastUploadIndexStr, rcontact_last_upload_index + rcontact_upload_index_temporary);
+            LogInputUtil.e(TAG,key+"存入的下标："+(rcontact_last_upload_index + rcontact_upload_index_temporary)+",rcontact_last_upload_index="+rcontact_last_upload_index+",rcontact_upload_index_temporary="+rcontact_upload_index_temporary);
         }
     }
 

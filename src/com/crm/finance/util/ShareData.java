@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 
 import com.marswin89.marsdaemon.MyApplication1;
 
+import java.util.Set;
+
 /**
  * 
  * 
@@ -89,6 +91,24 @@ public class ShareData {
 			SharedPreferences settings = MyApplication1.getApp()
 				.getSharedPreferences(SETTINGS_NAME, 0);
 			settings.edit().putBoolean(name, value).commit();
+		}
+	}
+	public Set<String>  getStringSetValue(Context context,String name,Set<String> defaultValue)
+	{
+		synchronized (_writeLock) {
+			if(name==null || name.equals(""))return defaultValue;
+			SharedPreferences settings = context
+					.getSharedPreferences(SETTINGS_NAME, 0);
+			return settings.getStringSet(name, defaultValue);
+		}
+	}
+	public void  saveStringSetValue(String name ,Set<String> defaultValue)
+	{
+		synchronized (_writeLock) {
+			if(name==null || name.equals(""))return ;
+			SharedPreferences settings = MyApplication1.getApp()
+					.getSharedPreferences(SETTINGS_NAME, 0);
+			settings.edit().putStringSet(name, defaultValue).commit();
 		}
 	}
 	public Boolean getBooleanValue(String name,Boolean defaultValue)
