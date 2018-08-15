@@ -30,6 +30,7 @@ public class GlobalCofig {
     public static final String COMPATIBLE_INFO_CFG ="/MicroMsg/CompatibleInfo.cfg";
     public static final String WX_UIM_FILE ="/shared_prefs/app_brand_global_sp.xml";
 
+    public static final String WECHAT_DB_NAME ="wechat_data";//存微信数据库名
 
     public static final String uploadMessageUrl ="http://172.18.42.59/op/gift/crmPort";
     public static final String IS_INPUT_FILE_LOG ="IS_INPUT_FILE_LOG";
@@ -42,6 +43,7 @@ public class GlobalCofig {
 
      public static final String REDIS_HOST_TEST ="113.108.114.194";
     public static final int Port_TEST =6379;//;//redis port
+    public static final String CRM_TIP ="crm_";//数据库前缀，因为纯数字无法当表名
 
 
 
@@ -55,9 +57,6 @@ public class GlobalCofig {
     public static final String MESSAGE_LAST_UPLOAD_TIME_TEMPORARY ="message_last_upload_time_temporary_";//消息表当前取到哪一个临时时间，当上传成功后更改保存MESSAGE_LAST_UPLOAD_TIME，若没上传成功，不更新，拼接文件名以区分不同数据库
     public static final int UPLOAD_NUMBER =500;//信息表每次上传最大条数
 
-    public static final String RCONTACT_LAST_UPLOAD_INDEX ="rcontact_last_upload_index_";//聊天会话表当前取到哪个下标,拼接文件名以区分不同用户数据库
-    public static final String RCONTACT_UPLOAD_INDEX_TEMPORARY ="rcontact_last_upload_index_temporary_";//聊天会话表当前取到哪一个临时下标，当上传成功后更改保存RCONTACT_LAST_UPLOAD_INDEX，若没上传成功，不更新，拼接文件名以区分不同数据库
-    public static final int RCONTACTI_UPLOAD_NUMBER =500;//聊天会话表每次上传最大条数
 
     public static final long EXECUTE_SERVICE_INTERVAL =1000 * 10;//该时间内调用多次服务只执行一次,防止广播多次触发
     public static final long EXECUTE_BROADCAST_INTERVAL =  1000 * 120  ;//广播执行数据上传间隔，不同版本时间其实不可控，只是辅助手段
