@@ -95,6 +95,7 @@ public class WXBusinessUtil {
 
     //添加语音和图片路径
     public static ArrayList<Object> addSrcPath(String wxFolderPath, ArrayList<Object> messages) {
+        if(messages == null)return messages;
         int size = messages.size();
         long sumFileSize = 0;
         long currentTime = System.currentTimeMillis();

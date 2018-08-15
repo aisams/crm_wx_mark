@@ -184,7 +184,7 @@ public class Common {
                 while ((byteRead = inStream.read(buffer)) != -1) {
                     i++;
                     if(i%10000 == 0){
-                        MyLog.inputLogToFile(TAG,"正在读取复制数据库 = "+i);
+                        MyLog.inputLogToFile(TAG,"正在读取复制数据库 = "+i+"K");
                     }
                     fs.write(buffer, 0, byteRead);
                     Thread.currentThread().sleep(1);

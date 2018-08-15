@@ -18,6 +18,7 @@ import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.ShareData;
 import com.crm.finance.util.Utils;
 import com.crm.finance.util.WXDataFormJsonUtil;
+import com.crm.finance.util.dbutil.WeChatDBOperator;
 import com.marswin89.marsdaemon.MyApplication1;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
@@ -62,7 +63,8 @@ public class UploadDataLogActivity extends Activity {
         btn_upload_rcontact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                WXDataFormJsonUtil.cleanRcontactPath(UploadDataLogActivity.this);
+                WeChatDBOperator weChatDBOperator =new WeChatDBOperator(UploadDataLogActivity.this);
+                weChatDBOperator.dropAllTable();
                 LogInputUtil.showSingleTosat(UploadDataLogActivity.this,"正在重新上传!");
             }
         });

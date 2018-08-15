@@ -170,40 +170,22 @@ public class WXDataFormJsonUtil {
 
         return daoList;
     }
-    //获取所有会话聊天路径和jsonhashcode，支持删除重新上传好友
-    public static void addRcontactPath(Context context, String rcontactPath){
-        Set<String> rcontactSer = ShareData.getInstance().getStringSetValue(context,GlobalCofig.ALL_RCONTACT_PATH, new HashSet<String>());
-        rcontactSer.add(rcontactPath);
-        ShareData.getInstance().saveStringSetValue(GlobalCofig.ALL_RCONTACT_PATH,rcontactSer);
-    }
-    public static void cleanRcontactPath(Context context){
-        Set<String> rcontactSer = ShareData.getInstance().getStringSetValue(context,GlobalCofig.ALL_RCONTACT_PATH, new HashSet<String>());
-       for(String pathStr:rcontactSer){
-           ShareData.getInstance().saveIntValue(context, pathStr, 0);
-           LogInputUtil.e(TAG,"清除好友路径："+pathStr);
-       }
-    }
-    public static ArrayList<Object> getRcontactDataInDB(Context context,SQLiteDatabase dataTarget,File file) {
-        String RCONTACT_LAST_UPLOAD_INDEX_PATH = GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath();
 
-        int rcontact_last_upload_index = ShareData.getInstance().getIntValue(context, RCONTACT_LAST_UPLOAD_INDEX_PATH, 0);//上一次更新到哪个下标
-        LogInputUtil.e(TAG,"最后rcontact下标"+rcontact_last_upload_index+",path="+RCONTACT_LAST_UPLOAD_INDEX_PATH);
+    public static ArrayList<Object> getRcontactDataInDB(Context context,SQLiteDatabase dataTarget,File file, ArrayList<Object> rcontactInSelfDB) {//rcontactInSelfDB数据库里已上传的好友
         Cursor cr = null;
         ArrayList<Object> daoList = new ArrayList<Object>();
         try {
-             //cr = dataTarget.rawQuery("select * from rcontact", null);
-             cr = dataTarget.rawQuery("select * from rcontact limit "+rcontact_last_upload_index+"," + GlobalCofig.RCONTACTI_UPLOAD_NUMBER, null);
+             cr = dataTarget.rawQuery("select * from rcontact", null);
             if (cr.moveToFirst()) {
                 int count = cr.getCount();
-                MyLog.inputLogToFile(TAG, "rcontact 表准备上传数据条数= " + count);
-                ShareData.getInstance().saveIntValue(context, GlobalCofig.RCONTACT_UPLOAD_INDEX_TEMPORARY + file.getPath(), count);
+                MyLog.inputLogToFile(TAG, "rcontact 表总数据条数= " + count);
 
                 for (int j = 0; j < count; j++) {
                     String username = CursorUtil.getString(cr, "username");
+                    String nickname = CursorUtil.getString(cr, "nickname");
                     String alias = CursorUtil.getString(cr, "alias");
                     String conRemark = CursorUtil.getString(cr, "conRemark");
                     String domainList = CursorUtil.getString(cr, "domainList");
-                    String nickname = CursorUtil.getString(cr, "nickname");
                     String pyInitial = CursorUtil.getString(cr, "pyInitial");
                     String quanPin = CursorUtil.getString(cr, "quanPin");
                     long showHead = CursorUtil.getLong(cr, "showHead");
@@ -241,21 +223,40 @@ public class WXDataFormJsonUtil {
                     dao.setChatroomFlag(chatroomFlag);
                     dao.setDeleteFlag(deleteFlag);
                     dao.setContactLabelIds(contactLabelIds);
-
-                    daoList.add(dao);
+                    boolean isExsit =  isExsitInSelfDB(dao,rcontactInSelfDB);
+                    if(!isExsit){
+                        daoList.add(dao);
+                    }
                     cr.moveToNext();
                 }
             }
             cr.close();
         } catch (Exception e) {
-            MyLog.inputLogToFile(TAG, "查询表chatroom异常，msg = " + e.getMessage());
             daoList = null;
+            MyLog.inputLogToFile(TAG, "查询表chatroom异常，msg = " + e.getMessage());
         } finally {
             if (cr != null)
                 cr.close();
         }
 
         return daoList;
+    }
+    public static boolean isExsitInSelfDB(RcontactDao dao,ArrayList<Object> rcontactInSelfDB){
+        String userName = dao.getUsername();
+        String nickName = dao.getNickname();
+        String conRemark = dao.getConRemark();//备注名
+
+        boolean isExsit = false;
+        for(int i=0;i<rcontactInSelfDB.size();i++){
+            RcontactDao selfDBDao = (RcontactDao) rcontactInSelfDB.get(i);
+            String selfUserName = selfDBDao.getUsername();
+            String selfNickName = selfDBDao.getNickname();
+            String selfConRemark = selfDBDao.getConRemark();
+            if(userName.equals(selfUserName) && nickName.equals(selfNickName) && conRemark.equals(selfConRemark)){
+                return true;
+            }
+        }
+        return isExsit;
     }
 
     public static ArrayList<Object> getImgFlagDataInDB(SQLiteDatabase dataTarget) {

@@ -27,7 +27,7 @@ public class LogInputUtil {
     }
 
     public static void e(String tag,String content){
-        Log.e("localLog: "+tag, "log:" + content);
+        Log.e("CRMLog: "+tag, "log:" + content);
     }
 
     public static void i(String tag,String content){

@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.crm.finance"
     android:hardwareAccelerated="true"
-    android:versionCode="125"
-    android:versionName="1.2.5">
+    android:versionCode="127"
+    android:versionName="1.2.7">
 
     <uses-sdk
         android:minSdkVersion="21"

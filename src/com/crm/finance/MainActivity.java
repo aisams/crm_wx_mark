@@ -13,17 +13,20 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.crm.finance.dao.RcontactDao;
 import com.crm.finance.util.GlobalCofig;
 import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.MyLog;
 import com.crm.finance.util.ShareData;
 import com.crm.finance.util.Utils;
+import com.crm.finance.util.dbutil.WeChatDBOperator;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
 
 import org.apache.cordova.*;
 
 import java.io.DataOutputStream;
+import java.util.ArrayList;
 import java.util.Set;
 
 import cn.jpush.android.api.JPushInterface;
@@ -37,6 +40,8 @@ public class MainActivity extends CordovaActivity {
         super.onCreate(savedInstanceState);
         excuteInit();
     }
+
+
 
     public void excuteInit(){
         initBugly();

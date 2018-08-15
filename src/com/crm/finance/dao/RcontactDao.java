@@ -35,6 +35,9 @@ public class RcontactDao {
     public String getBigHeadImgUrl(){return this.bigheadimgurl;}
 
     public String getUsername() {
+        if(username == null){
+            username = "";
+        }
         return username;
     }
 
@@ -51,6 +54,9 @@ public class RcontactDao {
     }
 
     public String getConRemark() {
+        if(conRemark == null){
+            conRemark = "";
+        }
         return conRemark;
     }
 
@@ -67,6 +73,9 @@ public class RcontactDao {
     }
 
     public String getNickname() {
+        if(nickname == null){
+            nickname = "";
+        }
         return nickname;
     }
 

