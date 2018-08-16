@@ -1,11 +1,16 @@
 package com.crm.finance.util;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
+import android.os.Environment;
 
+import com.crm.finance.util.rootcmd.RootCmd;
 import com.crm.finance.util.timeutil.TimeUtils;
 
+import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -33,7 +38,73 @@ public class Utils {
         }
         return version;
     }
+    /**
+     * 获取apk包的信息：版本号，名称，图标等
+     * @param absPath apk包的绝对路径
+     * @param context
+     */
+    public static int getAPKVersionCode(Context context,String absPath) {
 
+        int versionCode = 0;
+        PackageManager pm = context.getPackageManager();
+        PackageInfo pkgInfo = pm.getPackageArchiveInfo(absPath,PackageManager.GET_ACTIVITIES);
+        if (pkgInfo != null) {
+            versionCode = pkgInfo.versionCode; // 得到版本信息
+            LogInputUtil.e(TAG, String.format("APK版本号: %s , APK路径;%s", versionCode,absPath));
+        }
+        return versionCode;
+    }
+
+    /**
+     * 防止升级后不是系统应用，将应用包也放到system/app目录下
+     * @param context
+     */
+    public static void copyVserAPK(Context context) {
+        LogInputUtil.e(TAG,"准备核对版本");
+        String sysApkName = "crm.apk";
+        String systemPath = Environment.getRootDirectory().getPath();
+        int sysAppVersion = Utils.getAPKVersionCode(context, systemPath + File.separator + "app" + File.separator + sysApkName);
+        File nowAppFile = null;
+        try {
+            nowAppFile = new File(context.getPackageManager().getApplicationInfo("com.crm.finance", 0).sourceDir);
+        } catch (Exception e) {
+            MyLog.inputLogToFile(TAG,"获取当前APK目录异常："+e.getLocalizedMessage());
+            return;
+        }
+
+        String nowAppParentDir = nowAppFile.getPath();
+        LogInputUtil.e(TAG,"当前应用安装目录："+nowAppParentDir);
+        int nowAppVersion = Utils.getAPKVersionCode(context, nowAppParentDir);
+
+        if (sysAppVersion == nowAppVersion) {
+            LogInputUtil.e(TAG, "两个版本一样，无需覆盖");
+            return;//两个版本一样，无需覆盖
+        }else if(nowAppVersion == 0){
+            MyLog.inputLogToFile(TAG, "缺少data/app/base.apk版本，即当前安装版本源件");
+            return;
+        }else{
+            MyLog.inputLogToFile(TAG, "检测到版本差异，准备覆盖");
+        }
+
+        if (!RootCmd.haveRoot()) {
+            LogInputUtil.e(TAG, "没ROOT权限");
+            return;
+        }
+
+        String paramString = "adb shell" + "\n" +
+                "su" + "\n" +
+                "mount -oremount /system" + "\n" +
+                "cp "+nowAppParentDir+"  /system/app/"+sysApkName + "\n" +
+                "chmod 777 /system/app/" +sysApkName+ "\n" +
+                "exit" + "\n" +
+                "exit";
+        int result = RootCmd.execRootCmdSilent(paramString);
+        if (result == -1) {
+            LogInputUtil.e(TAG, "adb执行异常");
+        } else {
+            LogInputUtil.e(TAG, "adb执行完成");
+        }
+    }
     /**
      * 时间戳转日期
      *

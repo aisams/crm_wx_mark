@@ -20,6 +20,8 @@ public class GlobalCofig {
     public static final boolean LOG_NO_LOG =true;//false打印日志文件，true不写日志
 
     public static final int IS_OFFICIAL = 0;//0为正式，1为测试
+    public static final String OPERATION_DIR_WEWORK ="/data/data/com.tencent.wework";//企业微信
+
 
     public static final String OPERATION_DIR ="/data/data/com.tencent.mm";
     public static final String OPERATION_DIR_1 ="/data/data/com.tencent.mm/.1";

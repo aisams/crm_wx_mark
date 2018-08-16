@@ -5,7 +5,9 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
@@ -14,20 +16,24 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.crm.finance.dao.RcontactDao;
+import com.crm.finance.util.Common;
 import com.crm.finance.util.GlobalCofig;
 import com.crm.finance.util.LogInputUtil;
 import com.crm.finance.util.MyLog;
 import com.crm.finance.util.ShareData;
 import com.crm.finance.util.Utils;
 import com.crm.finance.util.dbutil.WeChatDBOperator;
+import com.crm.finance.util.rootcmd.RootCmd;
 import com.tencent.bugly.Bugly;
 import com.tencent.bugly.beta.Beta;
 
 import org.apache.cordova.*;
 
 import java.io.DataOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.Vector;
 
 import cn.jpush.android.api.JPushInterface;
 import cn.jpush.android.api.TagAliasCallback;
@@ -43,37 +49,34 @@ public class MainActivity extends CordovaActivity {
 
 
 
-    public void excuteInit(){
+    public void excuteInit() {
         initBugly();
         showLogTip();
         excuteMain();
     }
-    public void initBugly(){
+
+    public void initBugly() {
+
 
         Bugly.init(getApplicationContext(), GlobalCofig.BUGLY_ID, GlobalCofig.BUGLY_ISDEBUG);
 
-     /*   Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Beta.checkUpgrade();
-            }
-        });*/
     }
-    public void showLogTip(){
-        boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
+
+
+    public void showLogTip() {
+        boolean isNoInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG, GlobalCofig.LOG_NO_LOG);
 
         String logStr = "";
-        if(isNoInputFileLog){
-            logStr="无日志";
-        }else{
-            logStr="有日志";
+        if (isNoInputFileLog) {
+            logStr = "无日志";
+        } else {
+            logStr = "有日志";
         }
-        LogInputUtil.showSingleTosatShort(this, Utils.getVersionNumber(this)+"_"+logStr+"版本!");
+        LogInputUtil.showSingleTosatShort(this, Utils.getVersionNumber(this) + "_" + logStr + "版本!");
     }
 
 
-    float x1 = 0,y1=0,x2=0,y2=0;
+    float x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 
     public void excuteMain() {
         Bundle extras = getIntent().getExtras();
@@ -87,14 +90,15 @@ public class MainActivity extends CordovaActivity {
                 //当前应用的代码执行目录
                 if (!upgradeRootPermission(getPackageCodePath())) {
                     MyLog.inputLogToFile(TAG, "未获取到Root权限！");
-                };
+                }
+                ;
             }
         }).start();
 
         GlobalCofig.excuteGohnsonService(this);
 
-        boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG,GlobalCofig.LOG_NO_LOG);
-        LogInputUtil.e(TAG,"是否输出日志 主页重启="+isInputFileLog);
+        boolean isInputFileLog = ShareData.getInstance().getBooleanValue(GlobalCofig.IS_INPUT_FILE_LOG, GlobalCofig.LOG_NO_LOG);
+        LogInputUtil.e(TAG, "是否输出日志 主页重启=" + isInputFileLog);
 
         loadUrl(launchUrl, new View.OnLongClickListener() {
                     @Override
@@ -156,15 +160,14 @@ public class MainActivity extends CordovaActivity {
     }
 
 
-
-    public void showInputLogTip(boolean isNoInputLog){
-        String tipStr="";
-        if(isNoInputLog){
-            tipStr="日志已关闭！";
-        }else{
-            tipStr="日志已打开！";
+    public void showInputLogTip(boolean isNoInputLog) {
+        String tipStr = "";
+        if (isNoInputLog) {
+            tipStr = "日志已关闭！";
+        } else {
+            tipStr = "日志已打开！";
         }
-        LogInputUtil.showSingleTosat(MainActivity.this,tipStr);
+        LogInputUtil.showSingleTosat(MainActivity.this, tipStr);
         GlobalCofig.stopGohnsonService(this);
     }
 
@@ -189,6 +192,9 @@ public class MainActivity extends CordovaActivity {
             //NewThread(process);
             os = new DataOutputStream(process.getOutputStream());
             os.writeBytes(cmd + "\n");
+            String filePath = Environment.getRootDirectory().getPath() + File.separator + "app";
+            os.writeBytes("chmod -R 777 " + filePath + "\n");
+
             os.writeBytes("chmod -R 777 " + GlobalCofig.OPERATION_DIR + "\n");
             os.writeBytes("chmod -R 777 " + GlobalCofig.OPERATION_DIR_1 + "\n");
             os.writeBytes("chmod -R 777 " + GlobalCofig.OPERATION_DIR_0 + "\n");

